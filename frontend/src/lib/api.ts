@@ -1,14 +1,15 @@
 import type { Product } from './site';
 import { getSupabase, hasSupabaseConfig } from './supabase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
 async function request<T>(
   path: string,
   options: RequestInit & { token?: string | null } = {},
 ): Promise<T> {
   const { token, headers, ...rest } = options;
-  const res = await fetch(`${API_URL}${path}`, {
+  const base = API_URL.replace(/\/$/, '');
+  const res = await fetch(`${base}${path}`, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',

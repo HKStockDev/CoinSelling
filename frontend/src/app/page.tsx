@@ -35,7 +35,7 @@ const STEPS = [
   },
   {
     title: 'Receive your coins',
-    body: 'Coins arrive in your club via a safe trade — no risky bots.',
+    body: 'Coins arrive in your club via a safe trade - no risky bots.',
   },
   {
     title: 'Play with confidence',
@@ -114,7 +114,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-black text-white">
-      {/* Hero — matches futcoinsempire.com: Neymar bg on the right, copy + stats on the left */}
+      {/* Hero: Neymar background on the right, copy + stats on the left */}
       <section className="relative min-h-[100svh] overflow-hidden pt-[72px]">
         <Image
           src="/brand/background-comprar-coins-eafc.png"
@@ -137,7 +137,7 @@ export default function HomePage() {
           <div className="animate-rise max-w-xl">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/25 bg-black/45 px-3.5 py-1.5 font-display text-[11px] uppercase tracking-[0.18em] text-gold sm:text-xs">
               <span className="h-2 w-2 rounded-full bg-green shadow-[0_0_8px_rgba(0,230,118,.8)]" />
-              ea fc 26 — unlimited stock
+              ea fc 26 - unlimited stock
             </p>
 
             <h1 className="font-display text-[42px] leading-[0.95] uppercase sm:text-6xl md:text-7xl">
@@ -193,7 +193,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-gold/15 bg-[#0a0a0a]/
+      <section className="border-y border-gold/15 bg-[#0a0a0a]">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-5 sm:justify-between sm:px-6 lg:justify-around">
           {TRUST.map((item) => (
             <div key={item.label} className="flex items-center gap-2.5">
@@ -210,7 +210,7 @@ export default function HomePage() {
       <section id="cards" className="overflow-hidden bg-[#0d0d0d] py-16">
         <div className="mx-auto max-w-[1280px] px-4 text-center sm:px-6">
           <p className="font-display text-xs uppercase tracking-[0.22em] text-gold">
-            ea fc 26 — unlimited stock
+            ea fc 26 - unlimited stock
           </p>
           <h2 className="mt-3 font-display text-3xl uppercase leading-tight sm:text-5xl">
             exclusive cards
@@ -256,7 +256,7 @@ export default function HomePage() {
               Choose your coins
             </h2>
             <p className="mt-3 text-white/60">
-              Instant delivery after payment confirmation · prices referenced from
+              Instant delivery after payment confirmation | prices referenced from
               LootBar FC 26
             </p>
           </div>
@@ -273,7 +273,7 @@ export default function HomePage() {
             auction <span className="gold-txt">method</span>
           </h2>
           <p className="mt-3 max-w-2xl text-white/65">
-            Safe delivery via the Transfer Market — in 5 steps you receive your
+            Safe delivery via the Transfer Market - in 5 steps you receive your
             coins
           </p>
           <div className="mt-10 grid gap-4 md:grid-cols-5">

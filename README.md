@@ -39,10 +39,23 @@ CoinSelling/
 ### 1. Supabase
 
 1. Create a Supabase project.
-2. Run `supabase/migrations/001_init.sql` in the SQL editor.
+2. Run `supabase/migrations/001_init.sql` then `002_auth_hardening.sql` in the SQL editor (or `node supabase/apply.js` with `DATABASE_URL`).
 3. Run `supabase/seed.sql`.
-4. Create your first user from the storefront **Account** page (or Auth dashboard).
-5. Promote to admin:
+4. In Auth settings, enable Email provider.
+5. Create your first user from the storefront **Sign in** page (`/account`).
+6. Promote to admin (pick one):
+
+**Option A — bootstrap env (recommended)**
+
+Set in `frontend/.env.local`:
+
+```
+ADMIN_BOOTSTRAP_EMAIL=you@example.com
+```
+
+Sign in with that email once — it is auto-promoted to `admin`.
+
+**Option B — SQL**
 
 ```sql
 update public.profiles
@@ -50,6 +63,11 @@ set role = 'admin'
 where email = 'you@example.com';
 ```
 
+**Option C — Admin UI**
+
+After one admin exists, use **Admin → Customers → Make admin**.
+
+New signups are always `customer`. Users cannot self-promote.
 ### 2. Stripe
 
 1. Create a Stripe account and get test secret key.
@@ -94,11 +112,22 @@ Storefront: `http://localhost:3000`
 
 **Frontend `.env.local`**
 
-- `NEXT_PUBLIC_API_URL=http://localhost:3001/api`
+- `NEXT_PUBLIC_API_URL=/api`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only: checkout, webhook, admin role changes)
+- `ADMIN_BOOTSTRAP_EMAIL` (optional first admin email)
 
+## Auth
+
+| Role | Access |
+| --- | --- |
+| Guest | Browse + checkout with email |
+| Customer | `/account` sign-in/up, order history, password reset |
+| Admin | `/admin` dashboard (middleware + RLS). Promote via bootstrap email, SQL, or Customers tab |
+
+`/admin` redirects unauthenticated users to `/account?next=/admin`.
 ## Buying flow
 
 1. Customer opens `/buy`, picks platform + pack.

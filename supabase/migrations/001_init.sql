@@ -103,7 +103,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
-    coalesce((new.raw_user_meta_data->>'role')::public.user_role, 'customer')
+    'customer'
   );
   return new;
 end;
@@ -152,8 +152,36 @@ $$;
 
 create policy "Profiles: users read own" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
+
+-- Users may update their own profile fields, but cannot change role.
+-- Admins may update any profile (including role).
+create or replace function public.prevent_role_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role and not public.is_admin() then
+    raise exception 'Only admins can change roles';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profiles_role_guard
+  before update on public.profiles
+  for each row execute procedure public.prevent_role_escalation();
+
 create policy "Profiles: users update own" on public.profiles
-  for update using (auth.uid() = id or public.is_admin());
+  for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id and role = (select p.role from public.profiles p where p.id = auth.uid()));
+
+create policy "Profiles: admin update" on public.profiles
+  for update
+  using (public.is_admin())
+  with check (public.is_admin());
 
 create policy "Products: anyone read active" on public.products
   for select using (is_active = true or public.is_admin());

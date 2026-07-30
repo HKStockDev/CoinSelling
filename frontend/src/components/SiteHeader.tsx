@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useCart } from '@/lib/cart';
+import { useAuth } from '@/lib/auth';
 
 const NAV = [
   { href: '/', label: 'Home' },
@@ -15,6 +16,7 @@ const NAV = [
 
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
+  const { user, loading: authLoading } = useAuth();
   const [visible, setVisible] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -58,6 +60,18 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {!authLoading && (
+            <Link
+              href={user?.role === 'admin' ? '/admin' : '/account'}
+              className="hidden font-display text-[12px] uppercase tracking-[0.08em] text-white/80 transition hover:text-gold sm:inline"
+            >
+              {user
+                ? user.role === 'admin'
+                  ? 'Admin'
+                  : 'Account'
+                : 'Sign in'}
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -101,6 +115,17 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href={user?.role === 'admin' ? '/admin' : '/account'}
+              onClick={() => setMenuOpen(false)}
+              className="font-display text-sm uppercase tracking-wide text-gold"
+            >
+              {user
+                ? user.role === 'admin'
+                  ? 'Admin'
+                  : 'Account'
+                : 'Sign in'}
+            </Link>
           </div>
         </div>
       )}

@@ -105,11 +105,29 @@ export const api = {
       },
     });
     if (error) throw new Error(error.message);
+    if (!data.user) throw new Error('Account creation failed');
     return {
-      id: data.user?.id,
-      email: data.user?.email,
+      id: data.user.id,
+      email: data.user.email,
       message: 'Account created.',
     };
+  },
+
+  async setCustomerRole(
+    _token: string,
+    userId: string,
+    role: 'customer' | 'admin',
+  ) {
+    return request<{
+      id: string;
+      email: string;
+      full_name: string | null;
+      role: string;
+      created_at: string;
+    }>(`/admin/customers/${userId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
   },
 
   async adminDashboard(_token: string) {

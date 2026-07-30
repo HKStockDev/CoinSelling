@@ -25,16 +25,15 @@ async function run() {
   await client.connect();
   console.log('Connected');
 
-  const migration = fs.readFileSync(
-    path.join(__dirname, 'migrations', '001_init.sql'),
-    'utf8',
-  );
+  const migrationFiles = ['001_init.sql', '002_auth_hardening.sql'];
+  for (const file of migrationFiles) {
+    const sql = fs.readFileSync(path.join(__dirname, 'migrations', file), 'utf8');
+    console.log(`Running ${file}...`);
+    await client.query(sql);
+    console.log(`${file} OK`);
+  }
+
   const seed = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf8');
-
-  console.log('Running migration...');
-  await client.query(migration);
-  console.log('Migration OK');
-
   const { rows } = await client.query(
     `select count(*)::int as count from public.products`,
   );

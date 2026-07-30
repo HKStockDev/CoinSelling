@@ -119,7 +119,7 @@ export default function AdminPage() {
           <h1 className="mt-6 font-display text-3xl text-white">Admin access</h1>
           <p className="mt-2 text-sm text-white/55">Sign in with an admin account to continue.</p>
           <Link
-            href="/account"
+            href="/account?next=/admin&mode=signin"
             className="mt-6 inline-flex rounded-lg bg-gold px-4 py-2.5 text-sm font-semibold text-black"
           >
             Go to account
@@ -135,7 +135,9 @@ export default function AdminPage() {
         <div className="max-w-md text-center">
           <h1 className="font-display text-3xl text-white">Access denied</h1>
           <p className="mt-2 text-sm text-white/55">
-            Your account is not an admin. Promote a profile role to admin in Supabase.
+            Your account is not an admin. Ask an existing admin to promote you,
+            or set <code className="text-gold">ADMIN_BOOTSTRAP_EMAIL</code> and
+            sign in with that address.
           </p>
           <Link href="/" className="mt-6 inline-block text-gold underline">
             Back to store
@@ -366,15 +368,43 @@ export default function AdminPage() {
                 {filteredCustomers.map((c) => (
                   <li
                     key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
                   >
                     <span>
                       <span className="font-medium text-white">{c.full_name || '—'}</span>
                       <span className="text-white/45"> · {c.email}</span>
                     </span>
-                    <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] uppercase tracking-wide text-white/50">
-                      {c.role}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] uppercase tracking-wide text-white/50">
+                        {c.role}
+                      </span>
+                      {c.id !== user.id && (
+                        <button
+                          type="button"
+                          className="rounded-lg border border-white/12 px-2.5 py-1 text-[11px] uppercase tracking-wide text-gold transition hover:border-gold/40"
+                          onClick={() => {
+                            const nextRole =
+                              c.role === 'admin' ? 'customer' : 'admin';
+                            void api
+                              .setCustomerRole(
+                                user.accessToken,
+                                c.id,
+                                nextRole,
+                              )
+                              .then(() => api.adminCustomers(user.accessToken))
+                              .then(setCustomers)
+                              .then(() =>
+                                setMessage(
+                                  `${c.email} is now ${nextRole}.`,
+                                ),
+                              )
+                              .catch((e: Error) => setError(e.message));
+                          }}
+                        >
+                          Make {c.role === 'admin' ? 'customer' : 'admin'}
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
                 {filteredCustomers.length === 0 && (

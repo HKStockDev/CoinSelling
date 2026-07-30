@@ -12,7 +12,7 @@ import {
 import { hasSupabaseConfig, getSupabase } from './supabase';
 import { api } from './api';
 
-interface AuthUser {
+export interface AuthUser {
   id: string;
   email: string;
   role: 'customer' | 'admin';
@@ -27,6 +27,7 @@ interface AuthState {
   signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -69,18 +70,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void hydrate();
     if (!hasSupabaseConfig()) return;
     const supabase = getSupabase();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
       void hydrate();
     });
     return () => sub.subscription.unsubscribe();
   }, [hydrate]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    await hydrate();
-  }, [hydrate]);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const supabase = getSupabase();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      // Promote bootstrap admin email if configured (server-side).
+      try {
+        await fetch('/api/auth/me');
+      } catch {
+        /* non-blocking */
+      }
+      await hydrate();
+    },
+    [hydrate],
+  );
 
   const signUp = useCallback(
     async (email: string, password: string, fullName?: string) => {
@@ -97,6 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    const supabase = getSupabase();
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || '';
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/account?mode=signin`,
+    });
+    if (error) throw error;
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -105,8 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signOut,
       refresh: hydrate,
+      resetPassword,
     }),
-    [user, loading, signIn, signUp, signOut, hydrate],
+    [user, loading, signIn, signUp, signOut, hydrate, resetPassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

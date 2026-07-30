@@ -16,6 +16,24 @@ interface OrderRow {
   order_items?: Array<{ product_name: string; quantity: number }>;
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="2.75" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.75" />
+      <path d="M4 20L20 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function AccountClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +49,7 @@ export default function AccountClient() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(
     queryError === 'admin_required'
       ? 'Admin access required. Sign in with an admin account.'
@@ -78,6 +97,20 @@ export default function AccountClient() {
     }
   }
 
+  const title =
+    mode === 'signin'
+      ? 'Sign in'
+      : mode === 'signup'
+        ? 'Create account'
+        : 'Reset password';
+
+  const subtitle =
+    mode === 'reset'
+      ? 'Enter your email and we will send a reset link.'
+      : mode === 'signup'
+        ? 'Create an account to track orders and checkout faster.'
+        : 'Track your orders and access your Empire dashboard.';
+
   if (loading) {
     return (
       <p className="px-4 py-24 text-center text-sm text-white/55">Loading…</p>
@@ -86,62 +119,74 @@ export default function AccountClient() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
-        <p className="font-display text-xs uppercase tracking-[0.2em] text-gold">
-          Account
-        </p>
-        <h1 className="mt-2 font-display text-4xl uppercase text-white">
-          {mode === 'signin'
-            ? 'Sign in'
-            : mode === 'signup'
-              ? 'Create account'
-              : 'Reset password'}
-        </h1>
-        <p className="mt-2 text-sm text-white/55">
-          {mode === 'reset'
-            ? 'Enter your email and we will send a reset link.'
-            : 'Customers track orders here. Admins unlock the dashboard after sign-in.'}
-        </p>
+      <div className="mx-auto flex min-h-[calc(100svh-72px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
+        <div className="text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/25 bg-gold/10 text-gold">
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+              <circle cx="12" cy="8" r="3.25" />
+              <path d="M5.5 19.5c1.6-3.2 4-4.8 6.5-4.8s4.9 1.6 6.5 4.8" strokeLinecap="round" />
+            </svg>
+          </div>
+          <h1 className="font-display text-4xl uppercase tracking-wide text-white sm:text-5xl">
+            {title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/55">
+            {subtitle}
+          </p>
+        </div>
 
         <form
           onSubmit={onAuth}
-          className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+          className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-[0_0_0_1px_rgba(212,175,55,0.08),0_20px_60px_rgba(0,0,0,0.35)] sm:p-6"
         >
           {mode === 'signup' && (
             <label className="block text-sm">
-              <span className="font-medium text-white/80">Full name</span>
+              <span className="mb-1.5 block font-medium text-white/70">Full name</span>
               <input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-gold/50"
+                className="w-full rounded-xl border border-white/12 bg-black/45 px-3.5 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-gold/45"
+                placeholder="Your name"
               />
             </label>
           )}
           <label className="block text-sm">
-            <span className="font-medium text-white/80">Email</span>
+            <span className="mb-1.5 block font-medium text-white/70">Email</span>
             <input
               required
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-gold/50"
+              className="w-full rounded-xl border border-white/12 bg-black/45 px-3.5 py-3 text-white outline-none transition placeholder:text-white/25 focus:border-gold/45"
+              placeholder="you@email.com"
             />
           </label>
           {mode !== 'reset' && (
             <label className="block text-sm">
-              <span className="font-medium text-white/80">Password</span>
-              <input
-                required
-                type="password"
-                autoComplete={
-                  mode === 'signin' ? 'current-password' : 'new-password'
-                }
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2.5 text-white outline-none focus:border-gold/50"
-              />
+              <span className="mb-1.5 block font-medium text-white/70">Password</span>
+              <div className="relative">
+                <input
+                  required
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete={
+                    mode === 'signin' ? 'current-password' : 'new-password'
+                  }
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-white/12 bg-black/45 px-3.5 py-3 pr-12 text-white outline-none transition placeholder:text-white/25 focus:border-gold/45"
+                  placeholder="Min. 8 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-white/45 transition hover:text-gold"
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
             </label>
           )}
           {error && <p className="text-sm text-danger">{error}</p>}
@@ -149,7 +194,7 @@ export default function AccountClient() {
           <button
             type="submit"
             disabled={busy}
-            className="gold-btn w-full rounded-xl py-3 text-sm disabled:opacity-60"
+            className="gold-btn w-full rounded-xl py-3.5 text-sm disabled:opacity-60"
           >
             {busy
               ? 'Please wait…'
@@ -161,23 +206,27 @@ export default function AccountClient() {
           </button>
         </form>
 
-        <div className="mt-5 flex flex-col gap-2 text-sm text-white/60">
+        <div className="mt-6 space-y-3 text-center text-sm">
           {mode === 'signin' && (
             <>
+              <p className="text-white/50">
+                Don&apos;t have an account?{' '}
+                <button
+                  type="button"
+                  className="font-semibold text-gold transition hover:text-gold-l"
+                  onClick={() => {
+                    setMode('signup');
+                    setError(null);
+                    setInfo(null);
+                    setShowPassword(false);
+                  }}
+                >
+                  Sign up
+                </button>
+              </p>
               <button
                 type="button"
-                className="text-left text-gold underline"
-                onClick={() => {
-                  setMode('signup');
-                  setError(null);
-                  setInfo(null);
-                }}
-              >
-                Need an account? Sign up
-              </button>
-              <button
-                type="button"
-                className="text-left underline"
+                className="text-white/45 transition hover:text-white/75"
                 onClick={() => {
                   setMode('reset');
                   setError(null);
@@ -189,17 +238,21 @@ export default function AccountClient() {
             </>
           )}
           {mode !== 'signin' && (
-            <button
-              type="button"
-              className="text-left text-gold underline"
-              onClick={() => {
-                setMode('signin');
-                setError(null);
-                setInfo(null);
-              }}
-            >
-              Back to sign in
-            </button>
+            <p className="text-white/50">
+              Already registered?{' '}
+              <button
+                type="button"
+                className="font-semibold text-gold transition hover:text-gold-l"
+                onClick={() => {
+                  setMode('signin');
+                  setError(null);
+                  setInfo(null);
+                  setShowPassword(false);
+                }}
+              >
+                Sign in
+              </button>
+            </p>
           )}
         </div>
       </div>
@@ -210,10 +263,7 @@ export default function AccountClient() {
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-display text-xs uppercase tracking-[0.2em] text-gold">
-            Account
-          </p>
-          <h1 className="mt-2 font-display text-4xl uppercase text-white">
+          <h1 className="font-display text-4xl uppercase text-white">
             My account
           </h1>
           <p className="mt-2 text-sm text-white/60">

@@ -14,9 +14,18 @@ const NAV = [
   { href: '/buy', label: 'Sell' },
 ];
 
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <circle cx="12" cy="8" r="3.25" />
+      <path d="M5.5 19.5c1.6-3.2 4-4.8 6.5-4.8s4.9 1.6 6.5 4.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [visible, setVisible] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -26,6 +35,19 @@ export function SiteHeader() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const accountHref =
+    user?.role === 'admin'
+      ? '/admin'
+      : user
+        ? '/account'
+        : '/account?mode=signin';
+
+  const accountLabel = user
+    ? user.role === 'admin'
+      ? 'Admin'
+      : 'Account'
+    : 'Login';
 
   return (
     <header
@@ -81,22 +103,15 @@ export function SiteHeader() {
           </button>
 
           <Link
-            href={
-              user?.role === 'admin'
-                ? '/admin'
-                : user
-                  ? '/account'
-                  : '/account?mode=signin'
-            }
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 px-3 font-display text-[12px] uppercase tracking-[0.08em] text-gold transition hover:border-gold hover:bg-gold/20 sm:px-4"
+            href={accountHref}
+            aria-label={accountLabel}
+            title={accountLabel}
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gold/35 bg-gold/10 text-gold transition hover:border-gold hover:bg-gold/20 hover:text-gold-l"
           >
-            {authLoading
-              ? 'Login'
-              : user
-                ? user.role === 'admin'
-                  ? 'Admin'
-                  : 'Account'
-                : 'Login'}
+            <UserIcon className="h-5 w-5" />
+            {user && (
+              <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_6px_rgba(0,230,118,.9)]" />
+            )}
           </Link>
 
           <button
@@ -124,21 +139,11 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              href={
-                user?.role === 'admin'
-                  ? '/admin'
-                  : user
-                    ? '/account'
-                    : '/account?mode=signin'
-              }
+              href={accountHref}
               onClick={() => setMenuOpen(false)}
               className="font-display text-sm uppercase tracking-wide text-gold"
             >
-              {user
-                ? user.role === 'admin'
-                  ? 'Admin'
-                  : 'Account'
-                : 'Login'}
+              {accountLabel}
             </Link>
           </div>
         </div>

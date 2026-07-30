@@ -103,7 +103,16 @@ function HeaderActions({
           aria-controls={menuId}
           className="relative inline-flex h-10 w-10 items-center justify-center text-gold transition hover:text-gold-l"
         >
-          <UserIcon className="h-5 w-5" />
+          {user?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className="h-7 w-7 rounded-full object-contain"
+            />
+          ) : (
+            <UserIcon className="h-5 w-5" />
+          )}
           {user && (
             <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_6px_rgba(0,230,118,.9)]" />
           )}

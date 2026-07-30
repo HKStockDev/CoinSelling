@@ -81,19 +81,19 @@ export function CartDrawer() {
                   >
                     <svg
                       viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
+                      width="17"
+                      height="17"
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="1.7"
+                      strokeWidth="1.75"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       aria-hidden
                     >
-                      <path d="M4 7h16" />
-                      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                      <path d="M6.5 7 7.5 19a2 2 0 0 0 2 1.7h5a2 2 0 0 0 2-1.7L18.5 7" />
-                      <path d="M10 11v5M14 11v5" />
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6" />
+                      <path d="M19 6v13.5A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5V6" />
+                      <path d="M10 11v6M14 11v6" />
                     </svg>
                   </button>
                 </div>

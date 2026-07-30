@@ -142,8 +142,9 @@
 .fce-ci-ico img{height:28px;width:auto;object-fit:contain}
 .fce-ci-name{font-family:'Russo One',sans-serif!important;font-size:16px;color:#fff;text-transform:uppercase}
 .fce-ci-label{font-family:'Chakra Petch',sans-serif!important;font-size:13px;color:#D4AF37;font-weight:600}
-.fce-ci-rm{background:rgba(255,255,255,.06);border:none;border-radius:50%;color:rgba(255,255,255,.75);width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
-.fce-ci-rm:hover{background:rgba(255,77,77,.12);color:#ff4d4d}
+.fce-ci-rm{background:rgba(255,255,255,.07);border:none;border-radius:50%;color:rgba(255,255,255,.7);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.fce-ci-rm:hover{background:rgba(255,77,77,.14);color:#ff4d4d;transform:scale(1.04)}
+.fce-ci-rm:active{transform:scale(.96)}
 /* Qty stepper */
 .fce-qty{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:12px}
 .fce-qb{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',sans-serif;transition:.2s;flex-shrink:0}

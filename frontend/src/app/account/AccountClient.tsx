@@ -539,13 +539,17 @@ export default function AccountClient() {
         <aside className="overflow-hidden rounded-2xl border border-white/10 bg-[#12141a]">
           <div className="border-b border-white/8 px-5 py-5">
             <div className="flex items-center gap-3">
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gold/20 font-display text-lg text-gold">
+              <div
+                className={`relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-display text-lg text-gold ${
+                  user.avatarUrl ? 'bg-transparent' : 'bg-gold/20'
+                }`}
+              >
                 {user.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={user.avatarUrl}
                     alt=""
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                   />
                 ) : (
                   initial
@@ -652,18 +656,22 @@ export default function AccountClient() {
               <div className="flex flex-wrap items-center gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <label className="relative cursor-pointer">
-                    <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gold/20 font-display text-base text-gold">
+                    <span
+                      className={`relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full font-display text-base text-gold ${
+                        user.avatarUrl ? 'bg-transparent' : 'bg-gold/20'
+                      }`}
+                    >
                       {user.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={user.avatarUrl}
                           alt=""
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                       ) : (
                         initial
                       )}
-                      <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-white/10 text-[10px] text-white/70">
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-[#12141a] text-[10px] text-white/70">
                         {avatarBusy ? '…' : '✎'}
                       </span>
                     </span>

@@ -123,19 +123,27 @@ export const api = {
       throw new Error('Image must be 2MB or smaller.');
     }
 
-    const ext =
-      file.type === 'image/png'
-        ? 'png'
-        : file.type === 'image/webp'
-          ? 'webp'
-          : file.type === 'image/gif'
-            ? 'gif'
-            : 'jpg';
-    const path = `${auth.user.id}/avatar.${ext}`;
+    // Knock out light/white backgrounds and store as transparent PNG
+    const prepared = await prepareAvatarPng(file);
+    const path = `${auth.user.id}/avatar.png`;
+
+    // Clear any older avatar.* variants
+    const { data: existing } = await supabase.storage
+      .from('avatars')
+      .list(auth.user.id);
+    if (existing?.length) {
+      await supabase.storage
+        .from('avatars')
+        .remove(existing.map((f) => `${auth.user!.id}/${f.name}`));
+    }
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(path, file, { upsert: true, contentType: file.type });
+      .upload(path, prepared, {
+        upsert: true,
+        contentType: 'image/png',
+        cacheControl: '3600',
+      });
     if (uploadError) throw new Error(uploadError.message);
 
     const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -376,3 +384,46 @@ export const api = {
     }>;
   },
 };
+
+/** Fit image and make near-white backgrounds transparent (PNG). */
+async function prepareAvatarPng(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not process image.');
+
+  ctx.clearRect(0, 0, size, size);
+  const scale = Math.min(size / bitmap.width, size / bitmap.height);
+  const w = bitmap.width * scale;
+  const h = bitmap.height * scale;
+  ctx.drawImage(bitmap, (size - w) / 2, (size - h) / 2, w, h);
+  bitmap.close();
+
+  const imageData = ctx.getImageData(0, 0, size, size);
+  const d = imageData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i];
+    const g = d[i + 1];
+    const b = d[i + 2];
+    const avg = (r + g + b) / 3;
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+    // Flat light/white (and pale gray) backgrounds → transparent
+    if (avg >= 235 && chroma < 28) {
+      d[i + 3] = 0;
+    } else if (avg >= 210 && chroma < 22) {
+      d[i + 3] = Math.round(d[i + 3] * ((235 - avg) / 25));
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('Could not export avatar.'))),
+      'image/png',
+    );
+  });
+  return new File([blob], 'avatar.png', { type: 'image/png' });
+}

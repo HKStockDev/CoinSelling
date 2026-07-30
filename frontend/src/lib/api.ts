@@ -113,34 +113,51 @@ export const api = {
   },
 
   async adminDashboard(_token: string) {
+    const { buildAdminDashboard } = await import('./admin-dashboard');
     const supabase = getSupabase();
-    const [products, orders, customers] = await Promise.all([
+    const [products, orders, customers, priceHistory] = await Promise.all([
       supabase.from('products').select('id', { count: 'exact', head: true }),
-      supabase.from('orders').select('id, status, total_gbp_pence'),
+      supabase
+        .from('orders')
+        .select(
+          'id, order_number, status, total_gbp_pence, platform, created_at, guest_email, profiles(email, full_name), order_items(product_name, quantity, unit_price_gbp_pence, coin_amount)',
+        )
+        .order('created_at', { ascending: false }),
       supabase
         .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('role', 'customer'),
+        .select('id, email, full_name, role, created_at')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('price_history')
+        .select('id, product_id, created_at, note, products(name)')
+        .order('created_at', { ascending: false })
+        .limit(10),
     ]);
     if (products.error) throw new Error(products.error.message);
     if (orders.error) throw new Error(orders.error.message);
     if (customers.error) throw new Error(customers.error.message);
 
-    const orderRows = orders.data ?? [];
-    const paidRevenue = orderRows
-      .filter((o) => ['paid', 'processing', 'delivered'].includes(o.status))
-      .reduce((sum, o) => sum + (o.total_gbp_pence ?? 0), 0);
-
-    return {
-      productCount: products.count ?? 0,
-      orderCount: orderRows.length,
-      customerCount: customers.count ?? 0,
-      paidRevenueGbpPence: paidRevenue,
-      ordersByStatus: orderRows.reduce<Record<string, number>>((acc, o) => {
-        acc[o.status] = (acc[o.status] ?? 0) + 1;
-        return acc;
-      }, {}),
+    const asOne = <T,>(value: T | T[] | null | undefined): T | null => {
+      if (Array.isArray(value)) return value[0] ?? null;
+      return value ?? null;
     };
+
+    const orderRows = (orders.data ?? []).map((row) => ({
+      ...row,
+      profiles: asOne(row.profiles as { email: string; full_name: string | null } | { email: string; full_name: string | null }[]),
+    }));
+
+    const historyRows = (priceHistory.data ?? []).map((row) => ({
+      ...row,
+      products: asOne(row.products as { name: string } | { name: string }[]),
+    }));
+
+    return buildAdminDashboard({
+      orders: orderRows,
+      customers: customers.data ?? [],
+      productsCount: products.count ?? 0,
+      priceHistory: historyRows,
+    });
   },
 
   async adminProducts(_token: string, platform?: string) {

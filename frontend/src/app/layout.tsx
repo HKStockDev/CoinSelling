@@ -3,10 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/lib/cart';
 import { AuthProvider } from '@/lib/auth';
-import { SiteHeader } from '@/components/SiteHeader';
-import { SiteFooter } from '@/components/SiteFooter';
-import { WhatsAppFab } from '@/components/WhatsAppFab';
-import { CartDrawer } from '@/components/CartDrawer';
+import { AppChrome } from '@/components/AppChrome';
 import { SITE } from '@/lib/site';
 
 const display = Russo_One({
@@ -55,11 +52,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-black antialiased">
         <AuthProvider>
           <CartProvider>
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-            <CartDrawer />
-            <WhatsAppFab />
+            <AppChrome>{children}</AppChrome>
           </CartProvider>
         </AuthProvider>
       </body>

@@ -119,14 +119,8 @@ export default function AccountClient() {
 
   if (!user) {
     return (
-      <div className="mx-auto flex min-h-[calc(100svh-72px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
+      <div className="mx-auto flex min-h-[calc(100svh-96px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
         <div className="text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/25 bg-gold/10 text-gold">
-            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-              <circle cx="12" cy="8" r="3.25" />
-              <path d="M5.5 19.5c1.6-3.2 4-4.8 6.5-4.8s4.9 1.6 6.5 4.8" strokeLinecap="round" />
-            </svg>
-          </div>
           <h1 className="font-display text-4xl uppercase tracking-wide text-white sm:text-5xl">
             {title}
           </h1>

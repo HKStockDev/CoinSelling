@@ -115,7 +115,7 @@ export default function HomePage() {
   return (
     <div className="bg-black text-white">
       {/* Hero: Neymar background on the right, copy + stats on the left */}
-      <section className="relative min-h-[100svh] overflow-hidden pt-[72px]">
+      <section className="relative min-h-[calc(100svh-96px)] overflow-hidden">
         <Image
           src="/brand/background-comprar-coins-eafc.png"
           alt=""
@@ -133,7 +133,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20 md:via-black/55 md:to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
 
-        <div className="relative mx-auto flex min-h-[calc(100svh-72px)] max-w-[1280px] flex-col justify-center px-4 py-12 sm:px-6 lg:py-16">
+        <div className="relative mx-auto flex min-h-[calc(100svh-96px)] max-w-[1280px] flex-col justify-center px-4 py-12 sm:px-6 lg:py-16">
           <div className="animate-rise max-w-xl">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/25 bg-black/45 px-3.5 py-1.5 font-display text-[11px] uppercase tracking-[0.18em] text-gold sm:text-xs">
               <span className="h-2 w-2 rounded-full bg-green shadow-[0_0_8px_rgba(0,230,118,.8)]" />

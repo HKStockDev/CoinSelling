@@ -25,7 +25,11 @@ async function run() {
   await client.connect();
   console.log('Connected');
 
-  const migrationFiles = ['001_init.sql', '002_auth_hardening.sql'];
+  const migrationFiles = [
+    '001_init.sql',
+    '002_auth_hardening.sql',
+    '003_avatars.sql',
+  ];
   for (const file of migrationFiles) {
     const sql = fs.readFileSync(path.join(__dirname, 'migrations', file), 'utf8');
     console.log(`Running ${file}...`);

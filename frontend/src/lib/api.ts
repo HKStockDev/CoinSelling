@@ -83,7 +83,7 @@ export const api = {
     if (!auth.user) throw new Error('Not authenticated');
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role')
+      .select('id, email, full_name, role, avatar_url')
       .eq('id', auth.user.id)
       .single();
     if (error) throw new Error(error.message);
@@ -92,6 +92,7 @@ export const api = {
       email: data.email as string,
       role: data.role as string,
       fullName: (data.full_name as string | null) ?? null,
+      avatarUrl: (data.avatar_url as string | null) ?? null,
     };
   },
 
@@ -107,6 +108,70 @@ export const api = {
     if (error) throw new Error(error.message);
     await supabase.auth.updateUser({ data: { full_name: name } });
     return { fullName: name };
+  },
+
+  async uploadAvatar(_token: string, file: File) {
+    const supabase = getSupabase();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw new Error('Not authenticated');
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      throw new Error('Use a JPG, PNG, WEBP, or GIF image.');
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error('Image must be 2MB or smaller.');
+    }
+
+    const ext =
+      file.type === 'image/png'
+        ? 'png'
+        : file.type === 'image/webp'
+          ? 'webp'
+          : file.type === 'image/gif'
+            ? 'gif'
+            : 'jpg';
+    const path = `${auth.user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', auth.user.id);
+    if (profileError) throw new Error(profileError.message);
+
+    await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+    return { avatarUrl };
+  },
+
+  async removeAvatar(_token: string) {
+    const supabase = getSupabase();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw new Error('Not authenticated');
+
+    const { data: files } = await supabase.storage
+      .from('avatars')
+      .list(auth.user.id);
+    if (files?.length) {
+      await supabase.storage
+        .from('avatars')
+        .remove(files.map((f) => `${auth.user!.id}/${f.name}`));
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: null })
+      .eq('id', auth.user.id);
+    if (error) throw new Error(error.message);
+    await supabase.auth.updateUser({ data: { avatar_url: null } });
+    return { avatarUrl: null };
   },
 
   async updatePassword(_token: string, password: string) {

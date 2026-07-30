@@ -17,6 +17,7 @@ export interface AuthUser {
   email: string;
   role: 'customer' | 'admin';
   fullName: string | null;
+  avatarUrl: string | null;
   accessToken: string;
 }
 
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: me.email,
         role: me.role as 'customer' | 'admin',
         fullName: me.fullName,
+        avatarUrl: me.avatarUrl ?? null,
         accessToken: token,
       });
     } catch {

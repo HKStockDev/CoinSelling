@@ -165,8 +165,10 @@ export default function AccountClient() {
   );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(
     queryError === 'admin_required'
       ? 'Admin access required. Sign in with an admin account.'
@@ -179,6 +181,8 @@ export default function AccountClient() {
   const [nameDraft, setNameDraft] = useState('');
   const [editingPassword, setEditingPassword] = useState(false);
   const [passwordDraft, setPasswordDraft] = useState('');
+  const [confirmPasswordDraft, setConfirmPasswordDraft] = useState('');
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   useEffect(() => {
     if (
@@ -233,8 +237,15 @@ export default function AccountClient() {
         setMode('signin');
         return;
       }
-      if (mode === 'signin') await signIn(email, password);
-      else await signUp(email, password, fullName);
+      if (mode === 'signup') {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match.');
+          return;
+        }
+        await signUp(email, password, fullName);
+      } else {
+        await signIn(email, password);
+      }
       await refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -265,17 +276,53 @@ export default function AccountClient() {
       setError('Password must be at least 8 characters.');
       return;
     }
+    if (passwordDraft !== confirmPasswordDraft) {
+      setError('Passwords do not match.');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       await api.updatePassword(user.accessToken, passwordDraft);
       setPasswordDraft('');
+      setConfirmPasswordDraft('');
       setEditingPassword(false);
       setInfo('Password updated.');
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function onAvatarSelected(file: File | null) {
+    if (!user || !file) return;
+    setAvatarBusy(true);
+    setError(null);
+    setInfo(null);
+    try {
+      await api.uploadAvatar(user.accessToken, file);
+      await refresh();
+      setInfo('Avatar updated.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function onRemoveAvatar() {
+    if (!user) return;
+    setAvatarBusy(true);
+    setError(null);
+    try {
+      await api.removeAvatar(user.accessToken);
+      await refresh();
+      setInfo('Avatar removed.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAvatarBusy(false);
     }
   }
 
@@ -372,6 +419,37 @@ export default function AccountClient() {
               </div>
             </label>
           )}
+          {mode === 'signup' && (
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-medium text-white/70">
+                Confirm password
+              </span>
+              <div className="relative">
+                <input
+                  required
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  minLength={8}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border border-white/12 bg-black/45 px-3.5 py-3 pr-12 text-white outline-none transition placeholder:text-white/25 focus:border-gold/45"
+                  placeholder="Repeat your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  aria-label={
+                    showConfirmPassword
+                      ? 'Hide confirm password'
+                      : 'Show confirm password'
+                  }
+                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-white/45 transition hover:text-gold"
+                >
+                  <EyeIcon open={showConfirmPassword} />
+                </button>
+              </div>
+            </label>
+          )}
           {error && <p className="text-sm text-danger">{error}</p>}
           {info && <p className="text-sm text-green">{info}</p>}
           <button
@@ -402,6 +480,8 @@ export default function AccountClient() {
                     setError(null);
                     setInfo(null);
                     setShowPassword(false);
+                    setShowConfirmPassword(false);
+                    setConfirmPassword('');
                   }}
                 >
                   Sign up
@@ -431,6 +511,8 @@ export default function AccountClient() {
                   setError(null);
                   setInfo(null);
                   setShowPassword(false);
+                  setShowConfirmPassword(false);
+                  setConfirmPassword('');
                 }}
               >
                 Sign in
@@ -457,8 +539,17 @@ export default function AccountClient() {
         <aside className="overflow-hidden rounded-2xl border border-white/10 bg-[#12141a]">
           <div className="border-b border-white/8 px-5 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 font-display text-lg text-gold">
-                {initial}
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gold/20 font-display text-lg text-gold">
+                {user.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.avatarUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  initial
+                )}
               </div>
               <div className="min-w-0">
                 <p className="truncate font-semibold text-white">{displayName}</p>
@@ -558,19 +649,71 @@ export default function AccountClient() {
                 </p>
               </div>
 
-              <InfoRow
-                label="Avatar"
-                hint="Initials shown from your nickname"
-                leading={
-                  <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gold/20 font-display text-base text-gold">
-                    {initial}
-                    <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-white/10 text-[10px] text-white/70">
-                      ✎
+              <div className="flex flex-wrap items-center gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <label className="relative cursor-pointer">
+                    <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gold/20 font-display text-base text-gold">
+                      {user.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={user.avatarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        initial
+                      )}
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-white/10 text-[10px] text-white/70">
+                        {avatarBusy ? '…' : '✎'}
+                      </span>
                     </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="sr-only"
+                      disabled={avatarBusy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        e.target.value = '';
+                        void onAvatarSelected(file);
+                      }}
+                    />
+                  </label>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white">Avatar</p>
+                    <p className="mt-0.5 text-sm text-white/40">
+                      {user.avatarUrl
+                        ? 'Click the pencil to replace your photo'
+                        : 'Upload a photo, or initials from your nickname'}
+                    </p>
                   </div>
-                }
-              />
-
+                </div>
+                {user.avatarUrl ? (
+                  <button
+                    type="button"
+                    disabled={avatarBusy}
+                    onClick={() => void onRemoveAvatar()}
+                    className="shrink-0 text-sm font-semibold text-danger transition hover:text-danger/80 disabled:opacity-60"
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <label className="shrink-0 cursor-pointer text-sm font-semibold text-gold transition hover:text-gold-l">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="sr-only"
+                      disabled={avatarBusy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        e.target.value = '';
+                        void onAvatarSelected(file);
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
               {editingName ? (
                 <div className="flex flex-wrap items-end gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
                   <label className="min-w-[200px] flex-1 text-sm">
@@ -613,36 +756,54 @@ export default function AccountClient() {
               <InfoRow label="Email" value={user.email} hint="Bound to your Empire login" />
 
               {editingPassword ? (
-                <div className="flex flex-wrap items-end gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
-                  <label className="min-w-[200px] flex-1 text-sm">
-                    <span className="mb-1.5 block font-semibold text-white">New password</span>
-                    <input
-                      type="password"
-                      value={passwordDraft}
-                      onChange={(e) => setPasswordDraft(e.target.value)}
-                      minLength={8}
-                      className="w-full rounded-xl border border-white/12 bg-black/45 px-3 py-2.5 text-white outline-none focus:border-gold/45"
-                      placeholder="Min. 8 characters"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void savePassword()}
-                    className="gold-btn rounded-xl px-4 py-2.5 text-sm disabled:opacity-60"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingPassword(false);
-                      setPasswordDraft('');
-                    }}
-                    className="rounded-xl border border-white/12 px-4 py-2.5 text-sm text-white/60"
-                  >
-                    Cancel
-                  </button>
+                <div className="space-y-3 border-b border-white/8 px-4 py-4 sm:px-5">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <label className="min-w-[200px] flex-1 text-sm">
+                      <span className="mb-1.5 block font-semibold text-white">New password</span>
+                      <input
+                        type="password"
+                        value={passwordDraft}
+                        onChange={(e) => setPasswordDraft(e.target.value)}
+                        minLength={8}
+                        className="w-full rounded-xl border border-white/12 bg-black/45 px-3 py-2.5 text-white outline-none focus:border-gold/45"
+                        placeholder="Min. 8 characters"
+                      />
+                    </label>
+                    <label className="min-w-[200px] flex-1 text-sm">
+                      <span className="mb-1.5 block font-semibold text-white">
+                        Confirm password
+                      </span>
+                      <input
+                        type="password"
+                        value={confirmPasswordDraft}
+                        onChange={(e) => setConfirmPasswordDraft(e.target.value)}
+                        minLength={8}
+                        className="w-full rounded-xl border border-white/12 bg-black/45 px-3 py-2.5 text-white outline-none focus:border-gold/45"
+                        placeholder="Repeat your password"
+                      />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void savePassword()}
+                      className="gold-btn rounded-xl px-4 py-2.5 text-sm disabled:opacity-60"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingPassword(false);
+                        setPasswordDraft('');
+                        setConfirmPasswordDraft('');
+                      }}
+                      className="rounded-xl border border-white/12 px-4 py-2.5 text-sm text-white/60"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <InfoRow

@@ -3,7 +3,7 @@ import { SITE, whatsappUrl } from '@/lib/site';
 export function WhatsAppFab() {
   return (
     <a
-      href={whatsappUrl('Olá FutCoins Empire, tenho uma dúvida sobre coins FC 26.')}
+      href={whatsappUrl('Hi FutCoins Empire, I have a question about FC 26 coins.')}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`WhatsApp ${SITE.whatsappDisplay}`}

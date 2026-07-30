@@ -7,11 +7,11 @@ import { useCart } from '@/lib/cart';
 import { formatGbp } from '@/lib/site';
 
 const NAV = [
-  { href: '/', label: 'Início' },
+  { href: '/', label: 'Home' },
   { href: '/#cards', label: 'Cards' },
-  { href: '/#comprar', label: 'Comprar' },
-  { href: '/#como-funciona', label: 'Como Funciona' },
-  { href: '/buy', label: 'Vender' },
+  { href: '/#buy', label: 'Buy' },
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/buy', label: 'Sell' },
 ];
 
 export function SiteHeader() {

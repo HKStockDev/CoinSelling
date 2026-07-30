@@ -1,7 +1,8 @@
 export const SITE = {
   name: 'FutCoins Empire',
   shortName: 'Empire',
-  tagline: 'Compre FIFA Coins com entrega imediata, 100% anti-ban e o melhor preço.',
+  tagline:
+    'Buy FIFA Coins with instant delivery, 100% anti-ban protection, and the best prices.',
   whatsappE164: '447307318243',
   whatsappDisplay: '07307 318243',
   currency: 'GBP',

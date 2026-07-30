@@ -20,43 +20,43 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="font-display text-xs uppercase tracking-[0.16em] text-gold">
-            Navegação
+            Explore
           </p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-white/75">
             <Link href="/" className="hover:text-gold">
-              Início
+              Home
             </Link>
-            <Link href="/#comprar" className="hover:text-gold">
-              Comprar
+            <Link href="/#buy" className="hover:text-gold">
+              Buy
             </Link>
-            <Link href="/#como-funciona" className="hover:text-gold">
-              Como Funciona
+            <Link href="/#how-it-works" className="hover:text-gold">
+              How it works
             </Link>
             <Link href="/buy" className="hover:text-gold">
-              Pacotes
+              Packs
             </Link>
             <Link href="/account" className="hover:text-gold">
-              Conta
+              Account
             </Link>
           </div>
         </div>
         <div>
           <p className="font-display text-xs uppercase tracking-[0.16em] text-gold">
-            Suporte
+            Support
           </p>
           <p className="mt-3 text-sm text-white/75">WhatsApp {SITE.whatsappDisplay}</p>
           <a
-            href={whatsappUrl('Olá Empire, preciso de ajuda com coins FC 26.')}
+            href={whatsappUrl('Hi Empire, I need help with FC 26 coins.')}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-block text-sm font-semibold text-gold hover:underline"
           >
-            Falar no WhatsApp
+            Chat on WhatsApp
           </a>
         </div>
       </div>
       <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} {SITE.name}. Não afiliado à EA Sports.
+        © {new Date().getFullYear()} {SITE.name}. Not affiliated with EA Sports.
       </div>
     </footer>
   );

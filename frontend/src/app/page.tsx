@@ -14,32 +14,32 @@ const CARDS = [
 ];
 
 const TRUST = [
-  'PAGAMENTO 100% SEGURO',
-  'entrega imediata',
-  'anti-ban garantido',
-  '4 anos de mercado',
+  '100% SECURE PAYMENT',
+  'instant delivery',
+  'anti-ban guaranteed',
+  '4 years in the market',
 ];
 
 const STEPS = [
   {
-    title: 'Escolha o pacote',
-    body: 'Selecione plataforma e a quantidade de coins FC 26 que você precisa.',
+    title: 'Choose your pack',
+    body: 'Select your platform and the FC 26 coin amount you need.',
   },
   {
-    title: 'Finalize o pagamento',
-    body: 'Checkout seguro. Após a confirmação, iniciamos a entrega imediatamente.',
+    title: 'Complete payment',
+    body: 'Secure checkout. Once payment clears, we start delivery right away.',
   },
   {
-    title: 'Liste um jogador',
-    body: 'No Mercado de Transferências, listamos/compramos o card combinado com você.',
+    title: 'List a player',
+    body: 'On the Transfer Market, we list or buy the agreed card with you.',
   },
   {
-    title: 'Receba as coins',
-    body: 'As coins entram na sua conta via trade seguro — sem bots arriscados.',
+    title: 'Receive your coins',
+    body: 'Coins arrive in your club via a safe trade — no risky bots.',
   },
   {
-    title: 'Jogue tranquilo',
-    body: 'Anti-ban garantido com método leilão e suporte WhatsApp 24/7.',
+    title: 'Play with confidence',
+    body: 'Anti-ban auction method with 24/7 WhatsApp support.',
   },
 ];
 
@@ -81,7 +81,6 @@ export default function HomePage() {
 
   return (
     <div className="bg-black text-white">
-      {/* Hero */}
       <section className="relative min-h-[100svh] overflow-hidden pt-[72px]">
         <Image
           src="/brand/background-comprar-coins-eafc.png"
@@ -102,22 +101,22 @@ export default function HomePage() {
         <div className="relative mx-auto grid min-h-[calc(100svh-72px)] max-w-[1280px] items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="animate-rise max-w-xl">
             <p className="mb-4 font-display text-xs uppercase tracking-[0.22em] text-gold sm:text-sm">
-              ea fc 26 - estoque ilimitado
+              ea fc 26 — unlimited stock
             </p>
             <h1 className="font-display text-[42px] leading-[0.95] uppercase sm:text-6xl md:text-7xl">
-              <span className="block">Monte seu</span>
-              <span className="block gold-txt">time dos</span>
-              <span className="block">sonhos</span>
+              <span className="block">Build your</span>
+              <span className="block gold-txt">dream</span>
+              <span className="block">squad</span>
             </h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-white/75 sm:text-lg">
-              Compre FIFA Coins com entrega imediata, 100% anti-ban e o melhor
-              preço. Mais de 5.000 jogadores confiam na Empire.
+              Buy FIFA Coins with instant delivery, 100% anti-ban protection, and
+              the best prices. More than 5,000 players trust Empire.
             </p>
             <Link
-              href="#comprar"
+              href="#buy"
               className="gold-btn mt-8 inline-flex rounded-xl px-8 py-4 text-sm sm:text-base"
             >
-              Comprar Coins
+              Buy Coins
             </Link>
           </div>
 
@@ -147,7 +146,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust strip */}
       <section className="border-y border-gold/15 bg-[#0a0a0a]">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-5 sm:px-6">
           {TRUST.map((label) => (
@@ -161,7 +159,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section id="stats" className="bg-black py-16">
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-10 px-4 text-center sm:grid-cols-3 sm:px-6">
           <div>
@@ -169,13 +166,13 @@ export default function HomePage() {
               {clientes}+
             </p>
             <p className="mt-2 text-sm uppercase tracking-widest text-white/55">
-              Clientes
+              Customers
             </p>
           </div>
           <div>
             <p className="font-display text-5xl gold-txt sm:text-6xl">{anos}</p>
             <p className="mt-2 text-sm uppercase tracking-widest text-white/55">
-              Anos no mercado
+              Years in the market
             </p>
           </div>
           <div>
@@ -189,20 +186,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Cards teaser */}
       <section id="cards" className="overflow-hidden bg-[#0d0d0d] py-16">
         <div className="mx-auto max-w-[1280px] px-4 text-center sm:px-6">
           <p className="font-display text-xs uppercase tracking-[0.22em] text-gold">
-            ea fc 26 - estoque ilimitado
+            ea fc 26 — unlimited stock
           </p>
           <h2 className="mt-3 font-display text-3xl uppercase leading-tight sm:text-5xl">
-            cards exclusivas
+            exclusive cards
             <br />
-            <span className="gold-txt">esperam por você!</span>
+            <span className="gold-txt">are waiting for you!</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-white/65">
-            Com nossas coins você garante os melhores cards do mercado e monta o
-            time perfeito no Ultimate Team
+            With our coins you secure the best cards on the market and build the
+            perfect Ultimate Team
           </p>
         </div>
         <div className="mt-10 overflow-hidden">
@@ -221,45 +217,43 @@ export default function HomePage() {
         </div>
         <div className="mt-10 text-center">
           <Link
-            href="#comprar"
+            href="#buy"
             className="gold-btn inline-flex rounded-xl px-8 py-4 text-sm"
           >
-            Comprar Coins
+            Buy Coins
           </Link>
         </div>
       </section>
 
-      {/* Buy / Calculator */}
-      <section id="comprar" className="bg-black py-16 sm:py-20">
+      <section id="buy" className="bg-black py-16 sm:py-20">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
           <div className="mb-10 text-center">
             <p className="font-display text-sm uppercase tracking-[0.18em] text-gold">
-              Compre Agora
+              Buy now
             </p>
             <h2 className="mt-2 font-display text-3xl uppercase sm:text-5xl">
-              Escolha suas coins
+              Choose your coins
             </h2>
             <p className="mt-3 text-white/60">
-              Entrega imediata após confirmação do pagamento · preços
-              referenciados em LootBar FC 26
+              Instant delivery after payment confirmation · prices referenced from
+              LootBar FC 26
             </p>
           </div>
           <CoinCalculator />
         </div>
       </section>
 
-      {/* Método leilão */}
-      <section id="como-funciona" className="border-t border-gold/10 bg-[#0a0d14] py-16 sm:py-20">
+      <section id="how-it-works" className="border-t border-gold/10 bg-[#0a0d14] py-16 sm:py-20">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
           <p className="font-display text-xs uppercase tracking-[0.2em] text-white/45">
-            processo de compra
+            buying process
           </p>
           <h2 className="mt-2 font-display text-3xl uppercase sm:text-5xl">
-            método <span className="gold-txt">leilão</span>
+            auction <span className="gold-txt">method</span>
           </h2>
           <p className="mt-3 max-w-2xl text-white/65">
-            Entrega segura via Mercado de Transferências — em 5 passos você
-            recebe suas coins
+            Safe delivery via the Transfer Market — in 5 steps you receive your
+            coins
           </p>
           <div className="mt-10 grid gap-4 md:grid-cols-5">
             {STEPS.map((step, i) => (
@@ -280,7 +274,7 @@ export default function HomePage() {
             ))}
           </div>
           <p className="mt-8 inline-flex items-center gap-2 font-display text-xs uppercase tracking-widest text-green">
-            entrega imediata
+            instant delivery
           </p>
         </div>
       </section>

@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
         onClick={() => addItem(product)}
         className="gold-btn mt-4 rounded-xl px-3 py-2.5 text-sm"
       >
-        Comprar Agora
+        Buy now
       </button>
     </article>
   );

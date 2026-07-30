@@ -106,7 +106,7 @@ export function CoinCalculator() {
       <div className="step-head">
         <div className="step-head-l">
           <div className="step-num">01</div>
-          <div className="step-title">Escolha sua Plataforma</div>
+          <div className="step-title">Choose your platform</div>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export function CoinCalculator() {
         <div className="step-head-l">
           <div className="step-num">02</div>
           <div className="step-title">
-            Escolha a Quantidade de Coins <span className="fc">FC 26</span>
+            Choose FC 26 coin amount
           </div>
         </div>
       </div>
@@ -170,7 +170,7 @@ export function CoinCalculator() {
             step={1}
             value={index}
             onChange={(e) => setIndex(Number(e.target.value))}
-            aria-label="Quantidade de coins"
+            aria-label="Coin amount"
           />
           <div className="ticks">
             {tiers.map((t, i) => {
@@ -192,7 +192,7 @@ export function CoinCalculator() {
         </div>
 
         <div className="qty-block">
-          <div className="qty-label">Quantidade de Coins</div>
+          <div className="qty-label">Coin amount</div>
           <div className="qty-ctrl">
             <button type="button" className="qbtn" onClick={() => bump(-1)}>
               −
@@ -202,7 +202,7 @@ export function CoinCalculator() {
                 <Image src="/brand/svgexport-1-1.png" alt="" width={30} height={30} />
               </div>
               <div className="qty-value">
-                {active.coins.toLocaleString('pt-BR')}
+                {active.coins.toLocaleString('en-GB')}
               </div>
             </div>
             <button type="button" className="qbtn" onClick={() => bump(1)}>
@@ -216,11 +216,11 @@ export function CoinCalculator() {
             <span className="price-old">{formatGbp(active.list)}</span>
             <span className="price-now gold-txt">{formatGbp(active.sale)}</span>
             {active.off > 0 && (
-              <span className="price-off">Caiu {active.off}%</span>
+              <span className="price-off">Down {active.off}%</span>
             )}
           </div>
           <p className="price-installment" id="fce-installment">
-            ou 12x de {formatGbp(Math.round(installment))} sem juros
+            or 12 interest-free payments of {formatGbp(Math.round(installment))}
           </p>
           <button
             type="button"
@@ -228,18 +228,18 @@ export function CoinCalculator() {
             disabled={loading}
             onClick={() => addItem(active.product)}
           >
-            Comprar Agora
+            Buy now
           </button>
           <div className="secure">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
             </svg>
-            Pagamento 100% Seguro · Entrega Imediata
+            100% secure payment · Instant delivery
           </div>
         </div>
       </div>
 
-      <div className="pacotes-title gold-txt">Pacotes de Coins</div>
+      <div className="pacotes-title gold-txt">Coin packs</div>
       <div className="table" id="fce-table">
         {tiers.map((t) => (
           <div key={t.label} className="trow">
@@ -258,14 +258,14 @@ export function CoinCalculator() {
             <div className="tcell-price">
               <span className="tprice-old">{formatGbp(t.list)}</span>
               <span className="tprice-now">{formatGbp(t.sale)}</span>
-              {t.off > 0 && <span className="tprice-off">Caiu {t.off}%</span>}
+              {t.off > 0 && <span className="tprice-off">Down {t.off}%</span>}
             </div>
             <button
               type="button"
               className="tbuy"
               onClick={() => addItem(t.product)}
             >
-              Comprar
+              Buy
             </button>
           </div>
         ))}

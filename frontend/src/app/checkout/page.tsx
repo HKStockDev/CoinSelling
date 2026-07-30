@@ -23,9 +23,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-black pt-[72px] text-white">
         <div className="mx-auto max-w-xl px-4 py-16 text-center">
-          <h1 className="font-display text-3xl uppercase">Carrinho vazio</h1>
-          <Link href="/#comprar" className="mt-4 inline-block text-gold underline">
-            Escolher coins
+          <h1 className="font-display text-3xl uppercase">Cart is empty</h1>
+          <Link href="/#buy" className="mt-4 inline-block text-gold underline">
+            Choose coins
           </Link>
         </div>
       </div>
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (hasSynthetic) {
       window.location.href = whatsappUrl(
-        `Quero comprar ${items.map((i) => `${i.product.name} x${i.quantity}`).join(', ')} — total ${formatGbp(totalPence)}`,
+        `I want to buy ${items.map((i) => `${i.product.name} x${i.quantity}`).join(', ')} — total ${formatGbp(totalPence)}`,
       );
       return;
     }
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 
         {hasSynthetic && (
           <p className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-sm text-gold-l">
-            Catálogo offline — finalize pelo WhatsApp com os preços LootBar.
+            Catalogue offline — finish on WhatsApp with LootBar reference prices.
           </p>
         )}
 
@@ -113,24 +113,24 @@ export default function CheckoutPage() {
           </label>
 
           <label className="block text-sm">
-            <span className="font-medium text-white/80">WhatsApp (opcional)</span>
+            <span className="font-medium text-white/80">WhatsApp (optional)</span>
             <input
               type="tel"
               value={customerWhatsapp}
               onChange={(e) => setCustomerWhatsapp(e.target.value)}
               className={inputClass}
-              placeholder="Para atualizações da entrega"
+              placeholder="For delivery updates"
             />
           </label>
 
           <label className="block text-sm">
-            <span className="font-medium text-white/80">Notas da entrega</span>
+            <span className="font-medium text-white/80">Delivery notes</span>
             <textarea
               value={deliveryNotes}
               onChange={(e) => setDeliveryNotes(e.target.value)}
               rows={3}
               className={inputClass}
-              placeholder="ID da plataforma, horário preferido, etc."
+              placeholder="Platform ID, preferred delivery window, etc."
             />
           </label>
 
@@ -142,10 +142,10 @@ export default function CheckoutPage() {
             className="gold-btn w-full rounded-xl py-3 text-sm disabled:opacity-60"
           >
             {loading
-              ? 'Redirecionando…'
+              ? 'Redirecting…'
               : hasSynthetic
-                ? 'Continuar no WhatsApp'
-                : 'Pagar com Stripe'}
+                ? 'Continue on WhatsApp'
+                : 'Pay with Stripe'}
           </button>
         </form>
       </div>

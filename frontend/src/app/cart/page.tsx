@@ -13,17 +13,17 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-black pt-[72px] text-white">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <h1 className="font-display text-4xl uppercase">Seu carrinho</h1>
-        <p className="mt-2 text-sm text-white/55">Plataforma: {platformLabel}</p>
+        <h1 className="font-display text-4xl uppercase">Your cart</h1>
+        <p className="mt-2 text-sm text-white/55">Platform: {platformLabel}</p>
 
         {items.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-            <p className="text-white/70">Carrinho vazio.</p>
+            <p className="text-white/70">Your cart is empty.</p>
             <Link
-              href="/#comprar"
+              href="/#buy"
               className="gold-btn mt-4 inline-block rounded-xl px-4 py-2 text-sm"
             >
-              Escolher coins
+              Choose coins
             </Link>
           </div>
         ) : (
@@ -39,7 +39,7 @@ export default function CartPage() {
                       {formatCoins(item.product.coin_amount)} · {item.product.name}
                     </p>
                     <p className="text-sm text-white/50">
-                      Qty {item.quantity} · {formatGbp(item.product.price_gbp_pence)} cada
+                      Qty {item.quantity} · {formatGbp(item.product.price_gbp_pence)} each
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
@@ -51,7 +51,7 @@ export default function CartPage() {
                       onClick={() => removeItem(item.product.id)}
                       className="text-sm text-red-400 hover:underline"
                     >
-                      Remover
+                      Remove
                     </button>
                   </div>
                 </li>
@@ -64,7 +64,7 @@ export default function CartPage() {
                 onClick={clear}
                 className="text-sm text-white/50 hover:text-gold"
               >
-                Limpar carrinho
+                Clear cart
               </button>
               <div className="text-right">
                 <p className="text-sm text-white/50">Total (GBP)</p>
@@ -77,13 +77,13 @@ export default function CartPage() {
                     onClick={() => setDrawerOpen(true)}
                     className="rounded-xl border border-white/15 px-4 py-2 text-sm"
                   >
-                    Ver drawer
+                    Open drawer
                   </button>
                   <Link
                     href="/checkout"
                     className="gold-btn inline-block rounded-xl px-5 py-2.5 text-sm"
                   >
-                    Ir para pagamento
+                    Go to checkout
                   </Link>
                 </div>
               </div>

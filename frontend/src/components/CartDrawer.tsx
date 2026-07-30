@@ -37,12 +37,12 @@ export function CartDrawer() {
         aria-hidden={!drawerOpen}
       >
         <div className="fce-dh">
-          <h3>Seu Carrinho ({count})</h3>
+          <h3>Your cart ({count})</h3>
           <button
             type="button"
             className="fce-dx"
             onClick={() => setDrawerOpen(false)}
-            aria-label="Fechar"
+            aria-label="Close"
           >
             ×
           </button>
@@ -52,8 +52,8 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div className="fce-empty">
               <div className="fce-empty-ic">🛒</div>
-              <div className="fce-empty-t">Carrinho vazio</div>
-              <p>Escolha suas coins e clique em Comprar</p>
+              <div className="fce-empty-t">Cart is empty</div>
+              <p>Choose your coins and click Buy</p>
             </div>
           ) : (
             items.map((item) => (
@@ -77,7 +77,7 @@ export function CartDrawer() {
                     type="button"
                     className="fce-ci-rm"
                     onClick={() => removeItem(item.product.id)}
-                    aria-label="Remover"
+                    aria-label="Remove"
                   >
                     ×
                   </button>
@@ -121,7 +121,7 @@ export function CartDrawer() {
 
         <div className="fce-df">
           <div className="fce-df-row">
-            <span className="fce-df-lbl">Quantidade total de coins</span>
+            <span className="fce-df-lbl">Total coins</span>
             <span className="fce-df-val">{formatCoins(totalCoins)}</span>
           </div>
           <div className="fce-df-row fce-df-total">
@@ -133,10 +133,10 @@ export function CartDrawer() {
             className="fce-btn-cont"
             onClick={() => setDrawerOpen(false)}
           >
-            Continuar comprando
+            Continue shopping
           </button>
           <Link href="/checkout" className="fce-btn-pay" onClick={() => setDrawerOpen(false)}>
-            Ir para pagamento
+            Go to checkout
           </Link>
         </div>
       </aside>

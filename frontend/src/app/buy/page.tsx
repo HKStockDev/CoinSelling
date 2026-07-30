@@ -40,18 +40,16 @@ export default function BuyPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-display text-xs uppercase tracking-[0.18em] text-gold">
-              Pacotes FC 26
+              FC 26 packs
             </p>
-            <h1 className="mt-2 font-display text-4xl uppercase">
-              Comprar coins
-            </h1>
+            <h1 className="mt-2 font-display text-4xl uppercase">Buy coins</h1>
             <p className="mt-2 max-w-xl text-white/60">
-              Preços referenciados em LootBar. Escolha a plataforma e o pacote.
+              Prices referenced from LootBar. Choose your platform and pack.
             </p>
           </div>
           {count > 0 && (
             <Link href="/cart" className="gold-btn rounded-xl px-4 py-2 text-sm">
-              Ver carrinho ({count})
+              View cart ({count})
             </Link>
           )}
         </div>
@@ -60,11 +58,11 @@ export default function BuyPage() {
           <PlatformPicker />
         </div>
 
-        {loading && <p className="mt-10 text-sm text-white/50">Carregando…</p>}
+        {loading && <p className="mt-10 text-sm text-white/50">Loading…</p>}
         {error && (
           <div className="mt-10 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-            Não foi possível carregar: {error}. Usando fallback da home se
-            disponível.
+            Could not load products: {error}. Use the homepage calculator as a
+            fallback if available.
           </div>
         )}
 
@@ -78,17 +76,17 @@ export default function BuyPage() {
 
         {!loading && !error && products.length === 0 && (
           <p className="mt-10 text-sm text-white/50">
-            Nenhum pacote ativo. Veja o calculador em{' '}
-            <Link href="/#comprar" className="text-gold underline">
-              Comprar
+            No active packs yet. See the calculator on{' '}
+            <Link href="/#buy" className="text-gold underline">
+              Buy
             </Link>
             .
           </p>
         )}
 
         <p className="mt-10 text-xs text-white/40">
-          Dica: mantenha algumas mil coins na conta antes da entrega. Pacotes a
-          partir de {formatCoins(100000)}.
+          Tip: keep a few thousand coins in-club before delivery. Packs start
+          from {formatCoins(100000)}.
         </p>
       </div>
     </div>

@@ -23,7 +23,7 @@ const body = Chakra_Petch({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE.name} – Coins para EA FC 26`,
+    default: `${SITE.name} | Buy EA FC 26 Coins`,
     template: `%s | ${SITE.name}`,
   },
   description: SITE.tagline,
@@ -39,9 +39,10 @@ export const metadata: Metadata = {
     apple: '/brand/favi.png',
   },
   openGraph: {
-    title: `${SITE.name} – Coins para EA FC 26`,
+    title: `${SITE.name} | Buy EA FC 26 Coins`,
     description: SITE.tagline,
     type: 'website',
+    locale: 'en_GB',
   },
   robots: { index: true, follow: true },
 };
@@ -50,7 +51,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${display.variable} ${body.variable} h-full`}>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-black antialiased">
         <AuthProvider>
           <CartProvider>

@@ -95,6 +95,27 @@ export const api = {
     };
   },
 
+  async updateProfile(_token: string, body: { fullName: string }) {
+    const supabase = getSupabase();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) throw new Error('Not authenticated');
+    const name = body.fullName.trim();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: name })
+      .eq('id', auth.user.id);
+    if (error) throw new Error(error.message);
+    await supabase.auth.updateUser({ data: { full_name: name } });
+    return { fullName: name };
+  },
+
+  async updatePassword(_token: string, password: string) {
+    const supabase = getSupabase();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+    return { message: 'Password updated.' };
+  },
+
   async register(body: { email: string; password: string; fullName?: string }) {
     const supabase = getSupabase();
     const { data, error } = await supabase.auth.signUp({

@@ -172,7 +172,7 @@ export function AdminSidebar({
           />
         </div>
 
-        <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+        <nav className="admin-scroll min-h-0 flex-1 overflow-y-auto px-3 py-4">
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
             Main menu
           </p>

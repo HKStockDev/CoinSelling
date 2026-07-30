@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart';
 import { useAuth } from '@/lib/auth';
@@ -49,16 +49,34 @@ function CartIcon({ className }: { className?: string }) {
 function HeaderActions({
   count,
   onCart,
-  accountHref,
-  accountLabel,
-  loggedIn,
 }: {
   count: number;
   onCart: () => void;
-  accountHref: string;
-  accountLabel: string;
-  loggedIn: boolean;
 }) {
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: MouseEvent) {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const displayName =
+    user?.fullName || user?.email?.split('@')[0] || 'Account';
+
   return (
     <div className="flex items-center gap-1 sm:gap-2">
       <button
@@ -75,17 +93,96 @@ function HeaderActions({
         )}
       </button>
 
-      <Link
-        href={accountHref}
-        aria-label={accountLabel}
-        title={accountLabel}
-        className="relative inline-flex h-10 w-10 items-center justify-center text-gold transition hover:text-gold-l"
-      >
-        <UserIcon className="h-5 w-5" />
-        {loggedIn && (
-          <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_6px_rgba(0,230,118,.9)]" />
+      <div className="relative" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={user ? 'Account menu' : 'Login menu'}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          aria-controls={menuId}
+          className="relative inline-flex h-10 w-10 items-center justify-center text-gold transition hover:text-gold-l"
+        >
+          <UserIcon className="h-5 w-5" />
+          {user && (
+            <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_6px_rgba(0,230,118,.9)]" />
+          )}
+        </button>
+
+        {open && (
+          <div
+            id={menuId}
+            role="menu"
+            className="absolute right-0 top-[calc(100%+8px)] z-[80] w-56 overflow-hidden rounded-xl border border-white/10 bg-[#0f1218] py-1.5 shadow-2xl shadow-black/50"
+          >
+            {user ? (
+              <>
+                <div className="border-b border-white/8 px-3.5 py-2.5">
+                  <p className="truncate text-sm font-semibold text-white">{displayName}</p>
+                  <p className="truncate text-[11px] text-white/45">{user.email}</p>
+                </div>
+                <Link
+                  href="/account?section=settings"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-white/75 transition hover:bg-white/5 hover:text-white"
+                >
+                  Profile
+                </Link>
+                <Link
+                  href="/account?section=orders"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-white/75 transition hover:bg-white/5 hover:text-white"
+                >
+                  Buy history
+                </Link>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    role="menuitem"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gold transition hover:bg-gold/10"
+                  >
+                    Admin panel
+                  </Link>
+                )}
+                <div className="my-1 border-t border-white/8" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                    void signOut();
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-danger transition hover:bg-danger/10"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/account?mode=signin"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-white/75 transition hover:bg-white/5 hover:text-white"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/account?mode=signup"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gold transition hover:bg-gold/10"
+                >
+                  Create account
+                </Link>
+              </>
+            )}
+          </div>
         )}
-      </Link>
+      </div>
     </div>
   );
 }
@@ -104,13 +201,9 @@ export function SiteHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const accountHref =
-    user?.role === 'admin'
-      ? '/admin'
-      : user
-        ? '/account'
-        : '/account?mode=signin';
-
+  const accountHref = user
+    ? '/account?section=settings'
+    : '/account?mode=signin';
   const accountLabel = user
     ? user.role === 'admin'
       ? 'Admin'
@@ -118,18 +211,11 @@ export function SiteHeader() {
     : 'Login';
 
   const actions = (
-    <HeaderActions
-      count={count}
-      onCart={() => setDrawerOpen(true)}
-      accountHref={accountHref}
-      accountLabel={accountLabel}
-      loggedIn={Boolean(user)}
-    />
+    <HeaderActions count={count} onCart={() => setDrawerOpen(true)} />
   );
 
   return (
     <>
-      {/* Default transparent header */}
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled ? 'pointer-events-none opacity-0' : 'opacity-100'
@@ -180,7 +266,6 @@ export function SiteHeader() {
         </div>
       </header>
 
-      {/* Sticky pill header — matches futcoinsempire.com scroll state */}
       <div
         className={`fixed left-1/2 top-5 z-[55] w-[min(1180px,calc(100%-32px))] -translate-x-1/2 transition-all duration-350 ${
           scrolled

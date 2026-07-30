@@ -79,7 +79,22 @@ export function CartDrawer() {
                     onClick={() => removeItem(item.product.id)}
                     aria-label="Remove"
                   >
-                    ×
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d="M4 7h16" />
+                      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                      <path d="M6.5 7 7.5 19a2 2 0 0 0 2 1.7h5a2 2 0 0 0 2-1.7L18.5 7" />
+                      <path d="M10 11v5M14 11v5" />
+                    </svg>
                   </button>
                 </div>
                 <div className="fce-qty">

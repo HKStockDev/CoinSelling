@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { formatGbp } from '@/lib/site';
+import { formatGbp, SITE, whatsappUrl } from '@/lib/site';
 
 interface OrderRow {
   id: string;
@@ -15,6 +15,13 @@ interface OrderRow {
   created_at: string;
   order_items?: Array<{ product_name: string; quantity: number }>;
 }
+
+type AccountSection =
+  | 'settings'
+  | 'orders'
+  | 'help'
+  | 'feedback'
+  | 'invite';
 
 function EyeIcon({ open }: { open: boolean }) {
   if (open) {
@@ -34,6 +41,107 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
+function NavIcon({ name }: { name: string }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  switch (name) {
+    case 'orders':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="20" r="1" />
+          <circle cx="18" cy="20" r="1" />
+          <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.5L21 8H7" />
+        </svg>
+      );
+    case 'settings':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+        </svg>
+      );
+    case 'help':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9a2.5 2.5 0 1 1 3.8 2.1c-.8.5-1.3 1-1.3 2" />
+          <path d="M12 17h.01" />
+        </svg>
+      );
+    case 'feedback':
+      return (
+        <svg {...common}>
+          <path d="M21 14a4 4 0 0 1-4 4H9l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4v7Z" />
+        </svg>
+      );
+    case 'invite':
+      return (
+        <svg {...common}>
+          <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7" />
+          <path d="M12 16V3M8 7l4-4 4 4" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
+function InfoRow({
+  label,
+  value,
+  hint,
+  actionLabel,
+  onAction,
+  leading,
+}: {
+  label: string;
+  value?: string;
+  hint?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  leading?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 border-b border-white/8 px-4 py-4 last:border-b-0 sm:px-5">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {leading}
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white">{label}</p>
+          {value ? (
+            <p className="mt-0.5 truncate text-sm text-white/70">{value}</p>
+          ) : hint ? (
+            <p className="mt-0.5 text-sm text-white/40">{hint}</p>
+          ) : null}
+        </div>
+      </div>
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="shrink-0 text-sm font-semibold text-gold transition hover:text-gold-l"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function statusTone(status: string) {
+  if (status === 'delivered' || status === 'paid') return 'text-green';
+  if (status === 'cancelled' || status === 'refunded') return 'text-danger';
+  if (status === 'processing') return 'text-sky-300';
+  return 'text-gold';
+}
+
 export default function AccountClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,9 +150,18 @@ export default function AccountClient() {
   const nextPath = searchParams.get('next') || '';
   const queryMode = searchParams.get('mode');
   const queryError = searchParams.get('error');
+  const querySection = searchParams.get('section') as AccountSection | null;
 
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>(
     queryMode === 'signup' ? 'signup' : queryMode === 'reset' ? 'reset' : 'signin',
+  );
+  const [section, setSection] = useState<AccountSection>(
+    querySection === 'orders' ||
+      querySection === 'help' ||
+      querySection === 'feedback' ||
+      querySection === 'invite'
+      ? querySection
+      : 'settings',
   );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -58,12 +175,29 @@ export default function AccountClient() {
   const [info, setInfo] = useState<string | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [passwordDraft, setPasswordDraft] = useState('');
+
+  useEffect(() => {
+    if (
+      querySection === 'orders' ||
+      querySection === 'settings' ||
+      querySection === 'help' ||
+      querySection === 'feedback' ||
+      querySection === 'invite'
+    ) {
+      setSection(querySection);
+    }
+  }, [querySection]);
 
   useEffect(() => {
     if (!user) {
       setOrders([]);
       return;
     }
+    setNameDraft(user.fullName || '');
     api
       .myOrders(user.accessToken)
       .then((data) => setOrders(data as OrderRow[]))
@@ -74,6 +208,18 @@ export default function AccountClient() {
       router.replace(nextPath);
     }
   }, [user, nextPath, router]);
+
+  const spentPence = useMemo(
+    () =>
+      orders
+        .filter((o) => ['paid', 'processing', 'delivered'].includes(o.status))
+        .reduce((s, o) => s + (o.total_gbp_pence || 0), 0),
+    [orders],
+  );
+
+  const initial = (user?.fullName || user?.email || 'U').trim().charAt(0).toUpperCase();
+  const displayName = user?.fullName || user?.email?.split('@')[0] || 'Customer';
+  const shortId = user ? `U${user.id.replace(/-/g, '').slice(0, 10).toUpperCase()}` : '';
 
   async function onAuth(e: FormEvent) {
     e.preventDefault();
@@ -95,6 +241,49 @@ export default function AccountClient() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function saveName() {
+    if (!user) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.updateProfile(user.accessToken, { fullName: nameDraft });
+      await refresh();
+      setEditingName(false);
+      setInfo('Nickname updated.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function savePassword() {
+    if (!user) return;
+    if (passwordDraft.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.updatePassword(user.accessToken, passwordDraft);
+      setPasswordDraft('');
+      setEditingPassword(false);
+      setInfo('Password updated.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function goSection(next: AccountSection) {
+    setSection(next);
+    setInfo(null);
+    setError(null);
+    router.replace(`/account?section=${next}`, { scroll: false });
   }
 
   const title =
@@ -253,58 +442,355 @@ export default function AccountClient() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl uppercase text-white">
-            My account
-          </h1>
-          <p className="mt-2 text-sm text-white/60">
-            {user.fullName || user.email}
-            {user.role === 'admin' ? ' · Admin' : ' · Customer'}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          {user.role === 'admin' && (
-            <Link
-              href="/admin"
-              className="gold-btn rounded-xl px-4 py-2.5 text-sm"
-            >
-              Admin panel
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="rounded-xl border border-white/15 px-4 py-2.5 text-sm text-white/80 transition hover:border-gold/40 hover:text-gold"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
+  const navItems: { id: AccountSection; label: string; icon: string }[] = [
+    { id: 'orders', label: 'Buy history', icon: 'orders' },
+    { id: 'settings', label: 'Settings', icon: 'settings' },
+    { id: 'help', label: 'Help centre', icon: 'help' },
+    { id: 'feedback', label: 'Feedback', icon: 'feedback' },
+    { id: 'invite', label: 'Invite for rewards', icon: 'invite' },
+  ];
 
-      <h2 className="mt-12 font-display text-2xl uppercase text-white">Orders</h2>
-      {orders.length === 0 ? (
-        <p className="mt-3 text-sm text-white/55">No orders yet.</p>
-      ) : (
-        <ul className="mt-4 divide-y divide-white/8 rounded-2xl border border-white/10 bg-white/[0.03]">
-          {orders.map((order) => (
-            <li key={order.id} className="px-4 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-white">{order.order_number}</p>
-                <p className="text-sm uppercase tracking-wide text-white/45">
-                  {order.status.replaceAll('_', ' ')}
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
+      <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+        {/* Sidebar */}
+        <aside className="overflow-hidden rounded-2xl border border-white/10 bg-[#12141a]">
+          <div className="border-b border-white/8 px-5 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/20 font-display text-lg text-gold">
+                {initial}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-white">{displayName}</p>
+                <p className="truncate text-[11px] text-white/40">{shortId}</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-white/8 bg-black/25 p-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-white/35">Spent</p>
+                <p className="mt-1 text-sm font-semibold text-gold">{formatGbp(spentPence)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-white/35">Orders</p>
+                <p className="mt-1 text-sm font-semibold text-white">{orders.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <nav className="p-2">
+            {navItems.map((item) => {
+              const active = section === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => goSection(item.id)}
+                  className={`relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                    active
+                      ? 'bg-white/[0.06] text-white'
+                      : 'text-white/60 hover:bg-white/[0.04] hover:text-white'
+                  }`}
+                >
+                  {active && (
+                    <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-gold" />
+                  )}
+                  <span className={active ? 'text-gold' : 'text-white/40'}>
+                    <NavIcon name={item.icon} />
+                  </span>
+                  {item.label}
+                  {item.id === 'orders' && orders.length > 0 && (
+                    <span className="ml-auto rounded-full bg-white/8 px-1.5 py-0.5 text-[10px] font-bold text-white/55">
+                      {orders.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            <a
+              href={whatsappUrl()}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-gold transition hover:bg-gold/10"
+            >
+              <span className="text-gold">
+                <NavIcon name="help" />
+              </span>
+              Earn with referrals
+            </a>
+          </nav>
+
+          <div className="border-t border-white/8 p-3">
+            {user.role === 'admin' && (
+              <Link
+                href="/admin"
+                className="mb-1 flex w-full items-center justify-center rounded-xl border border-gold/30 bg-gold/10 px-3 py-2.5 text-sm font-semibold text-gold transition hover:bg-gold/20"
+              >
+                Admin panel
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-sm text-white/50 transition hover:bg-white/5 hover:text-danger"
+            >
+              Sign out
+            </button>
+          </div>
+        </aside>
+
+        {/* Main panel */}
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#12141a]">
+          {(error || info) && (
+            <div className="border-b border-white/8 px-5 py-3">
+              {error && <p className="text-sm text-danger">{error}</p>}
+              {info && <p className="text-sm text-green">{info}</p>}
+            </div>
+          )}
+
+          {section === 'settings' && (
+            <>
+              <div className="border-b border-white/8 px-5 py-5">
+                <h1 className="font-display text-2xl uppercase tracking-wide text-white">
+                  Account information
+                </h1>
+                <p className="mt-1 text-sm text-white/45">
+                  Manage your Empire profile and security.
                 </p>
               </div>
-              <p className="mt-1 text-sm text-white/55">
-                {formatGbp(order.total_gbp_pence)} ·{' '}
-                {new Date(order.created_at).toLocaleString('en-GB')}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+
+              <InfoRow
+                label="Avatar"
+                hint="Initials shown from your nickname"
+                leading={
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gold/20 font-display text-base text-gold">
+                    {initial}
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-white/10 text-[10px] text-white/70">
+                      ✎
+                    </span>
+                  </div>
+                }
+              />
+
+              {editingName ? (
+                <div className="flex flex-wrap items-end gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
+                  <label className="min-w-[200px] flex-1 text-sm">
+                    <span className="mb-1.5 block font-semibold text-white">Nickname</span>
+                    <input
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      className="w-full rounded-xl border border-white/12 bg-black/45 px-3 py-2.5 text-white outline-none focus:border-gold/45"
+                      placeholder="Your nickname"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void saveName()}
+                    className="gold-btn rounded-xl px-4 py-2.5 text-sm disabled:opacity-60"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingName(false);
+                      setNameDraft(user.fullName || '');
+                    }}
+                    className="rounded-xl border border-white/12 px-4 py-2.5 text-sm text-white/60"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <InfoRow
+                  label="Nickname"
+                  value={user.fullName || 'Not set'}
+                  actionLabel="Modify"
+                  onAction={() => setEditingName(true)}
+                />
+              )}
+
+              <InfoRow label="Email" value={user.email} hint="Bound to your Empire login" />
+
+              {editingPassword ? (
+                <div className="flex flex-wrap items-end gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
+                  <label className="min-w-[200px] flex-1 text-sm">
+                    <span className="mb-1.5 block font-semibold text-white">New password</span>
+                    <input
+                      type="password"
+                      value={passwordDraft}
+                      onChange={(e) => setPasswordDraft(e.target.value)}
+                      minLength={8}
+                      className="w-full rounded-xl border border-white/12 bg-black/45 px-3 py-2.5 text-white outline-none focus:border-gold/45"
+                      placeholder="Min. 8 characters"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void savePassword()}
+                    className="gold-btn rounded-xl px-4 py-2.5 text-sm disabled:opacity-60"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingPassword(false);
+                      setPasswordDraft('');
+                    }}
+                    className="rounded-xl border border-white/12 px-4 py-2.5 text-sm text-white/60"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <InfoRow
+                  label="Password"
+                  hint="Keep your account secure"
+                  actionLabel="Set"
+                  onAction={() => setEditingPassword(true)}
+                />
+              )}
+
+              <InfoRow
+                label="Role"
+                value={user.role === 'admin' ? 'Administrator' : 'Customer'}
+              />
+
+              <div className="border-t border-white/8 px-5 py-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                  Delivery accounts
+                </p>
+              </div>
+              <InfoRow
+                label="EA / PlayStation / Xbox"
+                hint="Share your game account email at checkout for delivery"
+                actionLabel="Buy coins"
+                onAction={() => router.push('/buy')}
+              />
+            </>
+          )}
+
+          {section === 'orders' && (
+            <>
+              <div className="border-b border-white/8 px-5 py-5">
+                <h1 className="font-display text-2xl uppercase tracking-wide text-white">
+                  Buy history
+                </h1>
+                <p className="mt-1 text-sm text-white/45">Your recent coin orders.</p>
+              </div>
+              {orders.length === 0 ? (
+                <div className="px-5 py-14 text-center">
+                  <p className="text-sm text-white/45">No orders yet.</p>
+                  <Link
+                    href="/buy"
+                    className="gold-btn mt-5 inline-flex rounded-xl px-5 py-2.5 text-sm"
+                  >
+                    Buy coins
+                  </Link>
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/8">
+                  {orders.map((order) => (
+                    <li key={order.id} className="px-5 py-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold text-white">{order.order_number}</p>
+                        <p
+                          className={`text-xs font-semibold uppercase tracking-wide ${statusTone(order.status)}`}
+                        >
+                          {order.status.replaceAll('_', ' ')}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-sm text-white/50">
+                        {formatGbp(order.total_gbp_pence)} ·{' '}
+                        {new Date(order.created_at).toLocaleString('en-GB')}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+
+          {section === 'help' && (
+            <>
+              <div className="border-b border-white/8 px-5 py-5">
+                <h1 className="font-display text-2xl uppercase tracking-wide text-white">
+                  Help centre
+                </h1>
+                <p className="mt-1 text-sm text-white/45">{SITE.supportHours}</p>
+              </div>
+              <div className="space-y-4 px-5 py-6 text-sm text-white/65">
+                <p>
+                  Need help with an order, delivery, or payment? Message our team on WhatsApp
+                  for fast support.
+                </p>
+                <a
+                  href={whatsappUrl()}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gold-btn inline-flex rounded-xl px-5 py-2.5 text-sm"
+                >
+                  Chat on WhatsApp
+                </a>
+              </div>
+            </>
+          )}
+
+          {section === 'feedback' && (
+            <>
+              <div className="border-b border-white/8 px-5 py-5">
+                <h1 className="font-display text-2xl uppercase tracking-wide text-white">
+                  Feedback
+                </h1>
+                <p className="mt-1 text-sm text-white/45">
+                  Tell us how we can improve {SITE.name}.
+                </p>
+              </div>
+              <div className="px-5 py-6 text-sm text-white/65">
+                <p>
+                  Share feedback via WhatsApp — we read every message and use it to improve
+                  delivery speed and pricing.
+                </p>
+                <a
+                  href={whatsappUrl(`Hi ${SITE.name}, I have feedback:`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 inline-flex rounded-xl border border-gold/35 px-5 py-2.5 text-sm font-semibold text-gold transition hover:bg-gold/10"
+                >
+                  Send feedback
+                </a>
+              </div>
+            </>
+          )}
+
+          {section === 'invite' && (
+            <>
+              <div className="border-b border-white/8 px-5 py-5">
+                <h1 className="font-display text-2xl uppercase tracking-wide text-white">
+                  Invite for rewards
+                </h1>
+                <p className="mt-1 text-sm text-white/45">
+                  Share {SITE.name} with friends — rewards coming soon.
+                </p>
+              </div>
+              <div className="px-5 py-6 text-sm text-white/65">
+                <p>
+                  Referral coupons are on the roadmap. For now, send friends to the store and
+                  grab the best seasonal coin prices.
+                </p>
+                <Link
+                  href="/buy"
+                  className="gold-btn mt-5 inline-flex rounded-xl px-5 py-2.5 text-sm"
+                >
+                  Go to buy
+                </Link>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

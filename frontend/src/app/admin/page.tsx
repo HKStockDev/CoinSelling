@@ -218,7 +218,7 @@ export default function AdminPage() {
           orderStats={tab === 'orders' ? filteredOrderStats : null}
         />
 
-        <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">
+        <div className="admin-scroll min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">
           {message && (
             <p className="mb-4 rounded-lg border border-green/30 bg-green/10 px-3 py-2 text-sm text-green">
               {message}

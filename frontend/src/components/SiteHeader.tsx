@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useCart } from '@/lib/cart';
-import { formatGbp } from '@/lib/site';
 
 const NAV = [
   { href: '/', label: 'Home' },
@@ -15,7 +14,7 @@ const NAV = [
 ];
 
 export function SiteHeader() {
-  const { count, totalPence, setDrawerOpen } = useCart();
+  const { count, setDrawerOpen } = useCart();
   const [visible, setVisible] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -62,10 +61,21 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white transition hover:border-gold/40"
+            aria-label={`Open cart${count > 0 ? `, ${count} items` : ''}`}
+            className="relative inline-flex h-10 w-10 items-center justify-center text-gold transition hover:text-gold-l"
           >
-            <span className="font-display text-gold">{formatGbp(totalPence)}</span>
-            <span className="text-white/70">{count} Cart</span>
+            <svg
+              viewBox="0 0 576 512"
+              className="h-5 w-5 fill-current"
+              aria-hidden
+            >
+              <path d="M528.12 301.319l47.273-208C578.806 78.301 567.391 64 551.99 64H111l-9.4-40.6C97.4 10.7 86.1 0 72.7 0H16C7.2 0 0 7.2 0 16s7.2 16 16 16h56.7l77.3 334.4c4.1 17.7 19.9 30.3 38.1 30.3H488c8.8 0 16-7.2 16-16s-7.2-16-16-16H188.1c-6.1 0-11.3-4.2-12.7-10.1L162.5 336H512c15.4 0 28.8-10.9 31.6-26.1zM176 464a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm288 0a48 48 0 1 0 96 0 48 48 0 1 0-96 0z" />
+            </svg>
+            {count > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 font-display text-[10px] leading-none text-black">
+                {count > 99 ? '99+' : count}
+              </span>
+            )}
           </button>
           <button
             type="button"

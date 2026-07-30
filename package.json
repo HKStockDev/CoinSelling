@@ -1,0 +1,11 @@
+{
+  "name": "coinempire-mvp",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:web": "npm --prefix frontend run dev",
+    "dev:api": "npm --prefix backend run start:dev",
+    "build:web": "npm --prefix frontend run build",
+    "build:api": "npm --prefix backend run build"
+  }
+}

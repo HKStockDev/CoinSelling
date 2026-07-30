@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  --pitch: #0f3d2e;
+  --pitch-deep: #08261c;
+  --gold: #c6a04a;
+  --gold-bright: #e2c36d;
+  --cream: #f3f0e8;
+  --ink: #14201b;
+  --mist: #d9e2db;
+  --danger: #b42318;
+  --background: var(--cream);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-pitch: var(--pitch);
+  --color-pitch-deep: var(--pitch-deep);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-mist: var(--mist);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+}
+
+.pitch-grid {
+  background-image:
+    linear-gradient(rgba(15, 61, 46, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 61, 46, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.hero-glow {
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(198, 160, 74, 0.35), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(15, 61, 46, 0.55), transparent 55%),
+    linear-gradient(135deg, #0a2f23 0%, #145239 45%, #0f3d2e 100%);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-coin {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(4deg);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.7s ease-out both;
+}
+
+.animate-rise-delay {
+  animation: rise-in 0.8s ease-out 0.15s both;
+}
+
+.animate-float {
+  animation: float-coin 5s ease-in-out infinite;
+}

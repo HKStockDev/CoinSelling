@@ -129,22 +129,13 @@ export function SiteHeader() {
 
   return (
     <>
-      {/* Top trust strip — matches futcoinsempire.com */}
-      <div className="fixed inset-x-0 top-0 z-[60] flex h-8 items-center justify-center gap-2 bg-black/90 px-3 text-[10px] uppercase tracking-[0.14em] text-green sm:text-[11px]">
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-          <path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" strokeLinejoin="round" />
-          <path d="M9.5 12l1.8 1.8L15 10" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span>100% secure payment · instant delivery</span>
-      </div>
-
       {/* Default transparent header */}
       <header
-        className={`fixed inset-x-0 top-8 z-50 transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled ? 'pointer-events-none opacity-0' : 'opacity-100'
         }`}
       >
-        <div className="mx-auto flex h-[64px] max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/" className="relative z-10 shrink-0">
             <Image
               src="/brand/logo-png.png"
@@ -191,7 +182,7 @@ export function SiteHeader() {
 
       {/* Sticky pill header — matches futcoinsempire.com scroll state */}
       <div
-        className={`fixed left-1/2 top-[44px] z-[55] w-[min(1180px,calc(100%-32px))] -translate-x-1/2 transition-all duration-350 ${
+        className={`fixed left-1/2 top-5 z-[55] w-[min(1180px,calc(100%-32px))] -translate-x-1/2 transition-all duration-350 ${
           scrolled
             ? 'pointer-events-auto translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-6 opacity-0'
@@ -265,8 +256,7 @@ export function SiteHeader() {
         </div>
       )}
 
-      {/* Spacer for fixed trust bar + header */}
-      <div className="h-[96px]" aria-hidden />
+      <div className="h-[72px]" aria-hidden />
     </>
   );
 }

@@ -119,7 +119,7 @@ export default function AccountClient() {
 
   if (!user) {
     return (
-      <div className="mx-auto flex min-h-[calc(100svh-96px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
+      <div className="mx-auto flex min-h-[calc(100svh-72px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
         <div className="text-center">
           <h1 className="font-display text-4xl uppercase tracking-wide text-white sm:text-5xl">
             {title}

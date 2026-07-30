@@ -80,24 +80,24 @@ export function SiteHeader() {
             )}
           </button>
 
-          {!authLoading && (
-            <Link
-              href={
-                user?.role === 'admin'
-                  ? '/admin'
-                  : user
-                    ? '/account'
-                    : '/account?mode=signin'
-              }
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 px-3 font-display text-[12px] uppercase tracking-[0.08em] text-gold transition hover:border-gold hover:bg-gold/20 sm:px-4"
-            >
-              {user
+          <Link
+            href={
+              user?.role === 'admin'
+                ? '/admin'
+                : user
+                  ? '/account'
+                  : '/account?mode=signin'
+            }
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 px-3 font-display text-[12px] uppercase tracking-[0.08em] text-gold transition hover:border-gold hover:bg-gold/20 sm:px-4"
+          >
+            {authLoading
+              ? 'Login'
+              : user
                 ? user.role === 'admin'
                   ? 'Admin'
                   : 'Account'
                 : 'Login'}
-            </Link>
-          )}
+          </Link>
 
           <button
             type="button"

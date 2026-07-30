@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
-import { formatGbp, SITE } from '@/lib/site';
+import { formatGbp, SITE, whatsappUrl } from '@/lib/site';
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -17,19 +17,29 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const hasSynthetic = items.some((i) => i.product.id.startsWith('lootbar-'));
+
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="font-display text-3xl text-pitch">Nothing to checkout</h1>
-        <Link href="/buy" className="mt-4 inline-block text-gold underline">
-          Choose a coin pack
-        </Link>
+      <div className="min-h-screen bg-black pt-[72px] text-white">
+        <div className="mx-auto max-w-xl px-4 py-16 text-center">
+          <h1 className="font-display text-3xl uppercase">Carrinho vazio</h1>
+          <Link href="/#comprar" className="mt-4 inline-block text-gold underline">
+            Escolher coins
+          </Link>
+        </div>
       </div>
     );
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (hasSynthetic) {
+      window.location.href = whatsappUrl(
+        `Quero comprar ${items.map((i) => `${i.product.name} x${i.quantity}`).join(', ')} — total ${formatGbp(totalPence)}`,
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -55,72 +65,90 @@ export default function CheckoutPage() {
     }
   }
 
-  return (
-    <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-4xl text-pitch">Checkout</h1>
-      <p className="mt-2 text-sm text-ink/65">
-        Total due: <strong>{formatGbp(totalPence)}</strong> · Paid securely via Stripe in{' '}
-        {SITE.currency}
-      </p>
+  const inputClass =
+    'mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white outline-none focus:border-gold';
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4 border border-pitch/10 bg-white/80 p-5">
-        {!user && (
-          <label className="block text-sm">
-            <span className="font-medium text-pitch">Email</span>
-            <input
-              required
-              type="email"
-              value={guestEmail}
-              onChange={(e) => setGuestEmail(e.target.value)}
-              className="mt-1 w-full border border-pitch/20 bg-cream px-3 py-2 outline-none focus:border-gold"
-              placeholder="you@email.com"
-            />
-          </label>
+  return (
+    <div className="min-h-screen bg-black pt-[72px] text-white">
+      <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
+        <h1 className="font-display text-4xl uppercase">Checkout</h1>
+        <p className="mt-2 text-sm text-white/60">
+          Total: <strong className="text-gold">{formatGbp(totalPence)}</strong> · Stripe{' '}
+          {SITE.currency}
+        </p>
+
+        {hasSynthetic && (
+          <p className="mt-4 rounded-xl border border-gold/30 bg-gold/10 p-3 text-sm text-gold-l">
+            Catálogo offline — finalize pelo WhatsApp com os preços LootBar.
+          </p>
         )}
 
-        <label className="block text-sm">
-          <span className="font-medium text-pitch">EA / game account email</span>
-          <input
-            type="email"
-            value={gameAccountEmail}
-            onChange={(e) => setGameAccountEmail(e.target.value)}
-            className="mt-1 w-full border border-pitch/20 bg-cream px-3 py-2 outline-none focus:border-gold"
-            placeholder="Needed for delivery"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-pitch">Your WhatsApp (optional)</span>
-          <input
-            type="tel"
-            value={customerWhatsapp}
-            onChange={(e) => setCustomerWhatsapp(e.target.value)}
-            className="mt-1 w-full border border-pitch/20 bg-cream px-3 py-2 outline-none focus:border-gold"
-            placeholder="For delivery updates"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-pitch">Delivery notes</span>
-          <textarea
-            value={deliveryNotes}
-            onChange={(e) => setDeliveryNotes(e.target.value)}
-            rows={3}
-            className="mt-1 w-full border border-pitch/20 bg-cream px-3 py-2 outline-none focus:border-gold"
-            placeholder="Platform ID, preferred delivery window, etc."
-          />
-        </label>
-
-        {error && <p className="text-sm text-danger">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-pitch py-3 text-sm font-bold text-cream transition hover:bg-pitch-deep disabled:opacity-60"
+        <form
+          onSubmit={onSubmit}
+          className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
         >
-          {loading ? 'Redirecting to Stripe…' : 'Pay with Stripe'}
-        </button>
-      </form>
+          {!user && !hasSynthetic && (
+            <label className="block text-sm">
+              <span className="font-medium text-white/80">Email</span>
+              <input
+                required
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                className={inputClass}
+                placeholder="you@email.com"
+              />
+            </label>
+          )}
+
+          <label className="block text-sm">
+            <span className="font-medium text-white/80">EA / game account email</span>
+            <input
+              type="email"
+              value={gameAccountEmail}
+              onChange={(e) => setGameAccountEmail(e.target.value)}
+              className={inputClass}
+              placeholder="Needed for delivery"
+            />
+          </label>
+
+          <label className="block text-sm">
+            <span className="font-medium text-white/80">WhatsApp (opcional)</span>
+            <input
+              type="tel"
+              value={customerWhatsapp}
+              onChange={(e) => setCustomerWhatsapp(e.target.value)}
+              className={inputClass}
+              placeholder="Para atualizações da entrega"
+            />
+          </label>
+
+          <label className="block text-sm">
+            <span className="font-medium text-white/80">Notas da entrega</span>
+            <textarea
+              value={deliveryNotes}
+              onChange={(e) => setDeliveryNotes(e.target.value)}
+              rows={3}
+              className={inputClass}
+              placeholder="ID da plataforma, horário preferido, etc."
+            />
+          </label>
+
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="gold-btn w-full rounded-xl py-3 text-sm disabled:opacity-60"
+          >
+            {loading
+              ? 'Redirecionando…'
+              : hasSynthetic
+                ? 'Continuar no WhatsApp'
+                : 'Pagar com Stripe'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

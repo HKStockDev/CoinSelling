@@ -1,28 +1,42 @@
 @import "tailwindcss";
+@import "./empire.css";
 
 :root {
-  --pitch: #0f3d2e;
-  --pitch-deep: #08261c;
-  --gold: #c6a04a;
-  --gold-bright: #e2c36d;
-  --cream: #f3f0e8;
-  --ink: #14201b;
-  --mist: #d9e2db;
-  --danger: #b42318;
-  --background: var(--cream);
-  --foreground: var(--ink);
+  --gold: #d4af37;
+  --gold-l: #ffe082;
+  --gold-d: #9a7b1c;
+  --green: #00e676;
+  --black: #000000;
+  --ink: #06080c;
+  --card: #0d1018;
+  --muted: #6b7585;
+  --surface: #131313;
+  --pitch: #d4af37;
+  --pitch-deep: #9a7b1c;
+  --cream: #ffffff;
+  --danger: #ff4d4d;
+  --gg: linear-gradient(135deg, #ffe082 0%, #d4af37 45%, #9a7b1c 100%);
+  --background: #000000;
+  --foreground: #ffffff;
+  --fh: var(--font-display), "Russo One", sans-serif;
+  --fb: var(--font-body), "Chakra Petch", sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gold: var(--gold);
+  --color-gold-l: var(--gold-l);
+  --color-gold-d: var(--gold-d);
+  --color-green: var(--green);
+  --color-ink: var(--ink);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
   --color-pitch: var(--pitch);
   --color-pitch-deep: var(--pitch-deep);
-  --color-gold: var(--gold);
-  --color-gold-bright: var(--gold-bright);
   --color-cream: var(--cream);
-  --color-ink: var(--ink);
-  --color-mist: var(--mist);
+  --color-danger: var(--danger);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
 }
@@ -38,21 +52,29 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--fb);
 }
 
-.pitch-grid {
-  background-image:
-    linear-gradient(rgba(15, 61, 46, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 61, 46, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
+.gold-txt {
+  background: var(--gg);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.hero-glow {
-  background:
-    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(198, 160, 74, 0.35), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(15, 61, 46, 0.55), transparent 55%),
-    linear-gradient(135deg, #0a2f23 0%, #145239 45%, #0f3d2e 100%);
+.gold-btn {
+  background: var(--gg);
+  color: #000;
+  font-family: var(--fh);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  box-shadow: 0 4px 26px rgba(212, 175, 55, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gold-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 38px rgba(212, 175, 55, 0.55);
 }
 
 @keyframes rise-in {
@@ -66,13 +88,33 @@ body {
   }
 }
 
-@keyframes float-coin {
+@keyframes float-card {
   0%,
   100% {
-    transform: translateY(0) rotate(-4deg);
+    transform: translateY(0) rotate(-2deg);
   }
   50% {
-    transform: translateY(-12px) rotate(4deg);
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+
+@keyframes card-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes count-pulse {
+  from {
+    opacity: 0.4;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -81,9 +123,13 @@ body {
 }
 
 .animate-rise-delay {
-  animation: rise-in 0.8s ease-out 0.15s both;
+  animation: rise-in 0.85s ease-out 0.12s both;
 }
 
-.animate-float {
-  animation: float-coin 5s ease-in-out infinite;
+.animate-float-card {
+  animation: float-card 5.5s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: card-marquee 28s linear infinite;
 }

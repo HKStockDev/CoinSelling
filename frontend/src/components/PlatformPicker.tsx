@@ -17,10 +17,10 @@ export function PlatformPicker() {
             role="tab"
             aria-selected={active}
             onClick={() => setPlatform(p.id as Platform)}
-            className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-xl px-4 py-2 font-display text-sm uppercase tracking-wide transition ${
               active
-                ? 'bg-pitch text-cream'
-                : 'border border-pitch/20 bg-white/60 text-pitch hover:border-gold'
+                ? 'border-2 border-gold bg-gold/10 text-gold'
+                : 'border border-white/10 bg-white/5 text-white/70 hover:border-gold/40'
             }`}
           >
             {p.label}

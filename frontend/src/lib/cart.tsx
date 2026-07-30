@@ -19,11 +19,15 @@ export interface CartItem {
 interface CartState {
   platform: Platform;
   items: CartItem[];
+  drawerOpen: boolean;
+  setDrawerOpen: (open: boolean) => void;
   setPlatform: (platform: Platform) => void;
   addItem: (product: Product, quantity?: number) => void;
+  setItemQuantity: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
   clear: () => void;
   totalPence: number;
+  totalCoins: number;
   count: number;
 }
 
@@ -33,6 +37,7 @@ const STORAGE_KEY = 'coinempire-cart-v1';
 export function CartProvider({ children }: { children: ReactNode }) {
   const [platform, setPlatformState] = useState<Platform>('ps4_ps5');
   const [items, setItems] = useState<CartItem[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -74,6 +79,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { product, quantity }];
     });
+    setDrawerOpen(true);
+  }, []);
+
+  const setItemQuantity = useCallback((productId: string, quantity: number) => {
+    setItems((prev) => {
+      if (quantity <= 0) return prev.filter((i) => i.product.id !== productId);
+      return prev.map((i) =>
+        i.product.id === productId ? { ...i, quantity } : i,
+      );
+    });
   }, []);
 
   const removeItem = useCallback((productId: string) => {
@@ -91,6 +106,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [items],
   );
 
+  const totalCoins = useMemo(
+    () =>
+      items.reduce(
+        (sum, item) =>
+          sum +
+          (item.product.coin_amount + item.product.bonus_coins) * item.quantity,
+        0,
+      ),
+    [items],
+  );
+
   const count = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items],
@@ -100,14 +126,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => ({
       platform,
       items,
+      drawerOpen,
+      setDrawerOpen,
       setPlatform,
       addItem,
+      setItemQuantity,
       removeItem,
       clear,
       totalPence,
+      totalCoins,
       count,
     }),
-    [platform, items, setPlatform, addItem, removeItem, clear, totalPence, count],
+    [
+      platform,
+      items,
+      drawerOpen,
+      setPlatform,
+      addItem,
+      setItemQuantity,
+      removeItem,
+      clear,
+      totalPence,
+      totalCoins,
+      count,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

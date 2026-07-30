@@ -35,22 +35,23 @@ export default function BuyPage() {
   }, [platform]);
 
   return (
-    <div className="pitch-grid min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="min-h-screen bg-black pt-[72px] text-white">
+      <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-4xl text-pitch">Buy FC 26 coins</h1>
-            <p className="mt-2 max-w-xl text-ink/65">
-              Select your platform, then choose a coin pack. Prices are shown in GBP and
-              can be updated seasonally from admin.
+            <p className="font-display text-xs uppercase tracking-[0.18em] text-gold">
+              Pacotes FC 26
+            </p>
+            <h1 className="mt-2 font-display text-4xl uppercase">
+              Comprar coins
+            </h1>
+            <p className="mt-2 max-w-xl text-white/60">
+              Preços referenciados em LootBar. Escolha a plataforma e o pacote.
             </p>
           </div>
           {count > 0 && (
-            <Link
-              href="/cart"
-              className="rounded-md bg-gold px-4 py-2 text-sm font-bold text-pitch-deep"
-            >
-              View cart ({count})
+            <Link href="/cart" className="gold-btn rounded-xl px-4 py-2 text-sm">
+              Ver carrinho ({count})
             </Link>
           )}
         </div>
@@ -59,12 +60,11 @@ export default function BuyPage() {
           <PlatformPicker />
         </div>
 
-        {loading && (
-          <p className="mt-10 text-sm text-ink/60">Loading packs…</p>
-        )}
+        {loading && <p className="mt-10 text-sm text-white/50">Carregando…</p>}
         {error && (
-          <div className="mt-10 border border-danger/30 bg-white p-4 text-sm text-danger">
-            Could not load products: {error}. Start the NestJS API and seed Supabase.
+          <div className="mt-10 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+            Não foi possível carregar: {error}. Usando fallback da home se
+            disponível.
           </div>
         )}
 
@@ -77,14 +77,18 @@ export default function BuyPage() {
         )}
 
         {!loading && !error && products.length === 0 && (
-          <p className="mt-10 text-sm text-ink/60">
-            No active packs for this platform yet.
+          <p className="mt-10 text-sm text-white/50">
+            Nenhum pacote ativo. Veja o calculador em{' '}
+            <Link href="/#comprar" className="text-gold underline">
+              Comprar
+            </Link>
+            .
           </p>
         )}
 
-        <p className="mt-10 text-xs text-ink/50">
-          Tip: keep at least a few thousand coins in-club before delivery. Popular packs
-          start from {formatCoins(100000)}.
+        <p className="mt-10 text-xs text-white/40">
+          Dica: mantenha algumas mil coins na conta antes da entrega. Pacotes a
+          partir de {formatCoins(100000)}.
         </p>
       </div>
     </div>

@@ -60,18 +60,6 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {!authLoading && (
-            <Link
-              href={user?.role === 'admin' ? '/admin' : '/account'}
-              className="hidden font-display text-[12px] uppercase tracking-[0.08em] text-white/80 transition hover:text-gold sm:inline"
-            >
-              {user
-                ? user.role === 'admin'
-                  ? 'Admin'
-                  : 'Account'
-                : 'Sign in'}
-            </Link>
-          )}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -91,6 +79,26 @@ export function SiteHeader() {
               </span>
             )}
           </button>
+
+          {!authLoading && (
+            <Link
+              href={
+                user?.role === 'admin'
+                  ? '/admin'
+                  : user
+                    ? '/account'
+                    : '/account?mode=signin'
+              }
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 px-3 font-display text-[12px] uppercase tracking-[0.08em] text-gold transition hover:border-gold hover:bg-gold/20 sm:px-4"
+            >
+              {user
+                ? user.role === 'admin'
+                  ? 'Admin'
+                  : 'Account'
+                : 'Login'}
+            </Link>
+          )}
+
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white lg:hidden"
@@ -116,7 +124,13 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              href={user?.role === 'admin' ? '/admin' : '/account'}
+              href={
+                user?.role === 'admin'
+                  ? '/admin'
+                  : user
+                    ? '/account'
+                    : '/account?mode=signin'
+              }
               onClick={() => setMenuOpen(false)}
               className="font-display text-sm uppercase tracking-wide text-gold"
             >
@@ -124,7 +138,7 @@ export function SiteHeader() {
                 ? user.role === 'admin'
                   ? 'Admin'
                   : 'Account'
-                : 'Sign in'}
+                : 'Login'}
             </Link>
           </div>
         </div>

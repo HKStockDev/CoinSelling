@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { AdminTab } from '@/lib/admin-dashboard';
+import { formatGbp } from '@/lib/admin-dashboard';
 
 const TITLES: Partial<Record<AdminTab, { title: string; subtitle: string }>> = {
   dashboard: { title: 'Dashboard', subtitle: 'Store overview' },
@@ -29,6 +30,7 @@ export function AdminTopBar({
   onMenu,
   onLogout,
   notificationCount = 0,
+  orderStats,
 }: {
   tab: AdminTab;
   adminName: string;
@@ -37,6 +39,15 @@ export function AdminTopBar({
   onMenu: () => void;
   onLogout: () => void;
   notificationCount?: number;
+  orderStats?: {
+    total: number;
+    paid: number;
+    processing: number;
+    delivered: number;
+    cancelled: number;
+    pending: number;
+    revenuePence: number;
+  } | null;
 }) {
   const meta = TITLES[tab] ?? { title: 'Admin', subtitle: '' };
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,7 +93,34 @@ export function AdminTopBar({
         <p className="hidden text-xs leading-tight text-white/45 sm:block">{meta.subtitle}</p>
       </div>
 
-      <div className="mx-2 hidden min-w-0 flex-1 items-center md:flex lg:mx-8">
+      {tab === 'orders' && orderStats && (
+        <div className="hidden min-w-0 items-center gap-1 xl:flex">
+          {[
+            { label: 'Total', value: String(orderStats.total), tone: 'text-white' },
+            { label: 'Paid', value: String(orderStats.paid), tone: 'text-green' },
+            { label: 'Proc.', value: String(orderStats.processing), tone: 'text-sky-300' },
+            { label: 'Done', value: String(orderStats.delivered), tone: 'text-gold' },
+            {
+              label: 'Rev.',
+              value: formatGbp(orderStats.revenuePence),
+              tone: 'text-gold',
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-0.5"
+              title={stat.label}
+            >
+              <p className="text-[8px] font-semibold uppercase tracking-[0.1em] text-white/35">
+                {stat.label}
+              </p>
+              <p className={`text-[11px] font-semibold leading-tight ${stat.tone}`}>{stat.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mx-2 hidden min-w-0 flex-1 items-center md:flex lg:mx-6">
         <label className="relative flex w-full max-w-xl items-center">
           <svg
             className="pointer-events-none absolute left-3 text-white/35"

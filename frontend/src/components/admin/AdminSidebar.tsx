@@ -139,11 +139,13 @@ export function AdminSidebar({
   onSelect,
   open,
   onClose,
+  badges = {},
 }: {
   tab: AdminTab;
   onSelect: (tab: AdminTab) => void;
   open: boolean;
   onClose: () => void;
+  badges?: Partial<Record<AdminTab, number>>;
 }) {
   return (
     <>
@@ -177,6 +179,7 @@ export function AdminSidebar({
           <ul className="space-y-0.5">
             {MAIN.map((item) => {
               const active = tab === item.id;
+              const badge = badges[item.id] ?? 0;
               return (
                 <li key={item.id}>
                   <button
@@ -194,7 +197,12 @@ export function AdminSidebar({
                     <span className={active ? 'text-gold' : 'text-white/45'}>
                       <NavIcon name={item.icon} />
                     </span>
-                    {item.label}
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {badge > 0 && (
+                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                        {badge > 99 ? '99+' : badge}
+                      </span>
+                    )}
                   </button>
                 </li>
               );

@@ -7,7 +7,6 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import {
   formatGbp,
-  platformMeta,
   type AdminDashboardData,
   type AdminTab,
 } from '@/lib/admin-dashboard';
@@ -15,6 +14,7 @@ import { formatCoins, PLATFORMS, type Platform, type Product } from '@/lib/site'
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminTopBar';
 import { ComingSoon, DashboardView } from '@/components/admin/DashboardView';
+import { OrdersTable, computeOrderStats } from '@/components/admin/OrdersTable';
 
 export default function AdminPage() {
   const { user, loading, signOut } = useAuth();
@@ -41,6 +41,9 @@ export default function AdminPage() {
       setFetching(true);
       setError(null);
       try {
+        const orderData = await api.adminOrders(token);
+        if (!cancelled) setOrders(orderData);
+
         if (tab === 'dashboard') {
           const data = await api.adminDashboard(token);
           if (!cancelled) setDashboard(data);
@@ -48,10 +51,6 @@ export default function AdminPage() {
         if (tab === 'products') {
           const data = await api.adminProducts(token, platform);
           if (!cancelled) setProducts(data);
-        }
-        if (tab === 'orders' || tab === 'transactions') {
-          const data = await api.adminOrders(token);
-          if (!cancelled) setOrders(data);
         }
         if (tab === 'customers') {
           const data = await api.adminCustomers(token);
@@ -88,6 +87,12 @@ export default function AdminPage() {
       return hay.includes(q);
     });
   }, [orders, search]);
+
+  const orderStats = useMemo(() => computeOrderStats(orders), [orders]);
+  const filteredOrderStats = useMemo(
+    () => computeOrderStats(filteredOrders),
+    [filteredOrders],
+  );
 
   const filteredCustomers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -193,6 +198,7 @@ export default function AdminPage() {
         tab={tab}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        badges={{ orders: orderStats.newCount }}
         onSelect={(next) => {
           setTab(next);
           setMessage(null);
@@ -208,7 +214,8 @@ export default function AdminPage() {
           onSearch={setSearch}
           onMenu={() => setSidebarOpen(true)}
           onLogout={() => void signOut()}
-          notificationCount={dashboard?.bottom.pendingCount ?? 0}
+          notificationCount={orderStats.newCount || dashboard?.bottom.pendingCount || 0}
+          orderStats={tab === 'orders' ? filteredOrderStats : null}
         />
 
         <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">
@@ -306,60 +313,58 @@ export default function AdminPage() {
           )}
 
           {(tab === 'orders' || tab === 'transactions') && (
-            <div className="animate-rise overflow-hidden rounded-xl border border-white/8 bg-[#12141a]">
-              <ul className="divide-y divide-white/6">
-                {filteredOrders.map((order) => {
-                  const meta = platformMeta(order.platform);
-                  return (
-                    <li key={order.id} className="space-y-3 px-4 py-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={meta.icon}
-                            alt={meta.label}
-                            width={28}
-                            height={28}
-                            className="h-7 w-7 object-contain"
-                          />
-                          <div>
-                            <p className="font-semibold text-white">{order.order_number}</p>
-                            <p className="text-sm text-white/50">
-                              {order.status} · {meta.label} ·{' '}
-                              {order.profiles?.email ?? order.guest_email ?? 'guest'}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-sm font-semibold text-gold">
-                          {formatGbp(order.total_gbp_pence)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {['paid', 'processing', 'delivered', 'cancelled'].map((status) => (
-                          <button
-                            key={status}
-                            type="button"
-                            className="rounded-lg border border-white/10 px-2.5 py-1 text-xs capitalize text-white/70 hover:border-gold/40 hover:text-gold"
-                            onClick={() =>
-                              void api
-                                .updateOrderStatus(user.accessToken, order.id, { status })
-                                .then(() => api.adminOrders(user.accessToken))
-                                .then(setOrders)
-                                .catch((e: Error) => setError(e.message))
-                            }
-                          >
-                            Mark {status}
-                          </button>
-                        ))}
-                      </div>
-                    </li>
-                  );
-                })}
-                {filteredOrders.length === 0 && (
-                  <li className="px-4 py-10 text-center text-sm text-white/40">
-                    No orders found.
-                  </li>
-                )}
-              </ul>
+            <div className="space-y-4">
+              {tab === 'orders' && (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:hidden">
+                  {[
+                    { label: 'Total', value: String(filteredOrderStats.total), tone: 'text-white' },
+                    { label: 'Paid', value: String(filteredOrderStats.paid), tone: 'text-green' },
+                    {
+                      label: 'Processing',
+                      value: String(filteredOrderStats.processing),
+                      tone: 'text-sky-300',
+                    },
+                    {
+                      label: 'Delivered',
+                      value: String(filteredOrderStats.delivered),
+                      tone: 'text-gold',
+                    },
+                    {
+                      label: 'Cancelled',
+                      value: String(filteredOrderStats.cancelled),
+                      tone: 'text-danger',
+                    },
+                    {
+                      label: 'Revenue',
+                      value: formatGbp(filteredOrderStats.revenuePence),
+                      tone: 'text-gold',
+                    },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-xl border border-white/8 bg-[#12141a] px-3 py-2.5"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                        {stat.label}
+                      </p>
+                      <p className={`mt-1 text-sm font-semibold ${stat.tone}`}>{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <OrdersTable
+                orders={filteredOrders}
+                onUpdateStatus={async (orderId, status) => {
+                  try {
+                    await api.updateOrderStatus(user.accessToken, orderId, { status });
+                    const next = await api.adminOrders(user.accessToken);
+                    setOrders(next);
+                    setMessage(`Order marked ${status}.`);
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              />
             </div>
           )}
 

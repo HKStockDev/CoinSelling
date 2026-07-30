@@ -188,7 +188,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#0b0c10] text-white">
+    <div className="flex h-dvh overflow-hidden bg-[#0b0c10] text-white">
       <AdminSidebar
         tab={tab}
         open={sidebarOpen}
@@ -200,17 +200,18 @@ export default function AdminPage() {
         }}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:pl-[260px]">
         <AdminTopBar
           tab={tab}
           adminName={user.fullName || user.email.split('@')[0] || 'Admin'}
           search={search}
           onSearch={setSearch}
           onMenu={() => setSidebarOpen(true)}
+          onLogout={() => void signOut()}
           notificationCount={dashboard?.bottom.pendingCount ?? 0}
         />
 
-        <div className="flex-1 overflow-auto px-4 py-5 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">
           {message && (
             <p className="mb-4 rounded-lg border border-green/30 bg-green/10 px-3 py-2 text-sm text-green">
               {message}

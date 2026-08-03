@@ -1,5 +1,16 @@
 'use client';
 
+import { useId, useMemo } from 'react';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+
 type SparkProps = {
   values: number[];
   color: string;
@@ -10,31 +21,84 @@ type SparkProps = {
 export function Sparkline({
   values,
   color,
-  fillOpacity = 0.18,
   className = 'h-10 w-full',
 }: SparkProps) {
-  const w = 120;
-  const h = 36;
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = Math.max(max - min, 1);
-  const pts = values.map((v, i) => {
-    const x = values.length <= 1 ? 0 : (i / (values.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 4) - 2;
-    return [x, y] as const;
-  });
-  const line = pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x},${y}`).join(' ');
-  const area = `${line} L${w},${h} L0,${h} Z`;
+  const gradId = useId().replace(/:/g, '');
+  const data = useMemo(
+    () => values.map((value, i) => ({ i, value })),
+    [values],
+  );
+
+  if (data.length === 0) {
+    return <div className={className} />;
+  }
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={className} preserveAspectRatio="none">
-      <path d={area} fill={color} opacity={fillOpacity} />
-      <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
-    </svg>
+    <div className={className}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={`spark-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.45} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={color}
+            strokeWidth={2}
+            fill={`url(#spark-${gradId})`}
+            isAnimationActive={false}
+            dot={false}
+            activeDot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
 type SeriesPoint = { label: string; salesPence: number; orders: number };
+
+function formatAxisGbp(pence: number) {
+  const pounds = pence / 100;
+  if (pounds >= 1000) return `£${(pounds / 1000).toFixed(pounds >= 10000 ? 0 : 1)}k`;
+  return `£${Math.round(pounds)}`;
+}
+
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ dataKey?: string | number; value?: number | string; color?: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-white/10 bg-[#0f1218] px-3 py-2 text-xs shadow-xl">
+      <p className="mb-1.5 font-medium text-white/70">{label}</p>
+      {payload.map((item) => {
+        const key = String(item.dataKey ?? '');
+        const value =
+          key === 'salesPence'
+            ? formatAxisGbp(Number(item.value) || 0)
+            : String(item.value ?? 0);
+        return (
+          <p key={key} className="flex items-center gap-2 text-white">
+            <span
+              className="h-2 w-2 rounded-[2px]"
+              style={{ background: item.color }}
+            />
+            {key === 'salesPence' ? 'Sales' : 'Orders'}: {value}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export function SalesOrdersChart({
   series,
@@ -43,78 +107,94 @@ export function SalesOrdersChart({
   series: SeriesPoint[];
   className?: string;
 }) {
-  const w = 720;
-  const h = 260;
-  const pad = { t: 16, r: 44, b: 36, l: 52 };
-  const innerW = w - pad.l - pad.r;
-  const innerH = h - pad.t - pad.b;
-  const maxSales = Math.max(...series.map((s) => s.salesPence), 1);
-  const maxOrders = Math.max(...series.map((s) => s.orders), 1);
-
-  const xAt = (i: number) =>
-    pad.l + (series.length <= 1 ? innerW / 2 : (i / (series.length - 1)) * innerW);
-  const ySales = (v: number) => pad.t + innerH - (v / maxSales) * innerH;
-  const yOrders = (v: number) => pad.t + innerH - (v / maxOrders) * innerH;
-
-  const salesLine = series
-    .map((s, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${ySales(s.salesPence)}`)
-    .join(' ');
-  const salesArea = `${salesLine} L${xAt(series.length - 1)},${pad.t + innerH} L${xAt(0)},${pad.t + innerH} Z`;
-  const ordersLine = series
-    .map((s, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yOrders(s.orders)}`)
-    .join(' ');
-
-  const ticks = 4;
-  const labelEvery = Math.max(1, Math.ceil(series.length / 7));
+  const gradId = useId().replace(/:/g, '');
+  const data = useMemo(
+    () =>
+      series.map((s) => ({
+        label: s.label,
+        salesPence: s.salesPence,
+        orders: s.orders,
+      })),
+    [series],
+  );
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={className}>
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const y = pad.t + (innerH / ticks) * i;
-        const salesVal = Math.round(((maxSales * (ticks - i)) / ticks) / 100);
-        const orderVal = Math.round((maxOrders * (ticks - i)) / ticks);
-        return (
-          <g key={i}>
-            <line
-              x1={pad.l}
-              x2={w - pad.r}
-              y1={y}
-              y2={y}
-              stroke="rgba(255,255,255,0.06)"
-            />
-            <text x={pad.l - 8} y={y + 4} textAnchor="end" fill="#6b7585" fontSize="10">
-              £{salesVal >= 1000 ? `${(salesVal / 1000).toFixed(1)}k` : salesVal}
-            </text>
-            <text x={w - pad.r + 8} y={y + 4} textAnchor="start" fill="#6b7585" fontSize="10">
-              {orderVal}
-            </text>
-          </g>
-        );
-      })}
-      <path d={salesArea} fill="url(#salesGrad)" />
-      <path d={salesLine} fill="none" stroke="#d4af37" strokeWidth="2.5" />
-      <path d={ordersLine} fill="none" stroke="#3b82f6" strokeWidth="2.5" />
-      {series.map((s, i) =>
-        i % labelEvery === 0 || i === series.length - 1 ? (
-          <text
-            key={`${s.label}-${i}`}
-            x={xAt(i)}
-            y={h - 12}
-            textAnchor="middle"
-            fill="#6b7585"
-            fontSize="10"
-          >
-            {s.label}
-          </text>
-        ) : null,
-      )}
-      <defs>
-        <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#d4af37" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#d4af37" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <div className={className}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+        >
+          <defs>
+            <linearGradient id={`sales-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#d4af37" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#d4af37" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id={`orders-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            stroke="rgba(255,255,255,0.06)"
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={28}
+            dy={6}
+          />
+          <YAxis
+            yAxisId="sales"
+            orientation="left"
+            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            width={48}
+            tickFormatter={formatAxisGbp}
+          />
+          <YAxis
+            yAxisId="orders"
+            orientation="right"
+            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            width={32}
+            allowDecimals={false}
+          />
+          <Tooltip
+            content={<ChartTooltip />}
+            cursor={{ stroke: 'rgba(255,255,255,0.12)', strokeWidth: 1 }}
+          />
+          <Area
+            yAxisId="sales"
+            type="monotone"
+            dataKey="salesPence"
+            name="Sales (GBP)"
+            stroke="#d4af37"
+            strokeWidth={2.5}
+            fill={`url(#sales-${gradId})`}
+            dot={{ r: 3, fill: '#d4af37', strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: '#d4af37', stroke: '#0b0c10', strokeWidth: 2 }}
+          />
+          <Area
+            yAxisId="orders"
+            type="monotone"
+            dataKey="orders"
+            name="Orders"
+            stroke="#3b82f6"
+            strokeWidth={2.5}
+            fill={`url(#orders-${gradId})`}
+            dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: '#3b82f6', stroke: '#0b0c10', strokeWidth: 2 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 

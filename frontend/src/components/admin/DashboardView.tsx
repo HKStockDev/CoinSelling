@@ -166,10 +166,10 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
               </h2>
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-white/50">
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-gold" /> Sales (GBP)
+                  <span className="h-2.5 w-2.5 rounded-[2px] bg-gold" /> Sales (GBP)
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-500" /> Orders
+                  <span className="h-2.5 w-2.5 rounded-[2px] bg-blue-500" /> Orders
                 </span>
               </div>
             </div>

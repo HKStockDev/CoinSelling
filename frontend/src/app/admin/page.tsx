@@ -427,9 +427,11 @@ export default function AdminPage() {
           )}
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/8 px-4 py-3 text-[11px] text-white/35 sm:px-6">
-          <span>FutCoins Empire Admin Panel v2.1.0</span>
-          <div className="flex items-center gap-4">
+        <footer className="flex items-center justify-between gap-4 overflow-hidden border-t border-white/8 px-4 py-3 text-[11px] text-white/35 sm:px-6">
+          <span className="truncate whitespace-nowrap">
+            FutCoins Empire Admin Panel · v2.1.0
+          </span>
+          <div className="flex shrink-0 items-center gap-4 whitespace-nowrap">
             <button
               type="button"
               onClick={() => void signOut()}

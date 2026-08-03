@@ -211,7 +211,9 @@ export function SiteHeader() {
   }, []);
 
   const accountHref = user
-    ? '/account?section=settings'
+    ? user.role === 'admin'
+      ? '/admin'
+      : '/account?section=settings'
     : '/account?mode=signin';
   const accountLabel = user
     ? user.role === 'admin'

@@ -257,10 +257,6 @@ export function AdminSidebar({
             View store
           </Link>
         </nav>
-
-        <div className="shrink-0 border-t border-white/8 px-5 py-4 text-[11px] text-white/35">
-          {SITE.name} Admin · v2.1.0
-        </div>
       </aside>
     </>
   );

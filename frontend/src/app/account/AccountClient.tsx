@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -183,6 +190,7 @@ export default function AccountClient() {
   const [passwordDraft, setPasswordDraft] = useState('');
   const [confirmPasswordDraft, setConfirmPasswordDraft] = useState('');
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const pendingPostAuthRedirect = useRef(false);
 
   useEffect(() => {
     if (
@@ -209,7 +217,16 @@ export default function AccountClient() {
 
     if (nextPath.startsWith('/') && !nextPath.startsWith('//')) {
       if (nextPath.startsWith('/admin') && user.role !== 'admin') return;
+      pendingPostAuthRedirect.current = false;
       router.replace(nextPath);
+      return;
+    }
+
+    if (pendingPostAuthRedirect.current) {
+      pendingPostAuthRedirect.current = false;
+      if (user.role === 'admin') {
+        router.replace('/admin');
+      }
     }
   }, [user, nextPath, router]);
 
@@ -242,12 +259,15 @@ export default function AccountClient() {
           setError('Passwords do not match.');
           return;
         }
+        pendingPostAuthRedirect.current = true;
         await signUp(email, password, fullName);
       } else {
+        pendingPostAuthRedirect.current = true;
         await signIn(email, password);
       }
       await refresh();
     } catch (err) {
+      pendingPostAuthRedirect.current = false;
       setError((err as Error).message);
     } finally {
       setBusy(false);

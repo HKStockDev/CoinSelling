@@ -15,6 +15,35 @@ export type AdminTab =
   | 'notifications'
   | 'backups';
 
+/** URL segment → tab. Dashboard lives at `/admin`. Users at `/admin/user`. */
+export const ADMIN_SECTION_TO_TAB: Record<string, AdminTab> = {
+  orders: 'orders',
+  user: 'customers',
+  products: 'products',
+  coupons: 'coupons',
+  transactions: 'transactions',
+  withdrawals: 'withdrawals',
+  support: 'support',
+  settings: 'settings',
+  logs: 'logs',
+  reports: 'reports',
+  notifications: 'notifications',
+  backups: 'backups',
+};
+
+export function adminPathForTab(tab: AdminTab): string {
+  if (tab === 'dashboard') return '/admin';
+  if (tab === 'customers') return '/admin/user';
+  return `/admin/${tab}`;
+}
+
+export function adminTabFromPath(pathname: string): AdminTab {
+  const cleaned = pathname.replace(/\/+$/, '') || '/admin';
+  if (cleaned === '/admin') return 'dashboard';
+  const segment = cleaned.slice('/admin/'.length).split('/')[0] ?? '';
+  return ADMIN_SECTION_TO_TAB[segment] ?? 'dashboard';
+}
+
 export interface DashboardSeriesPoint {
   date: string;
   label: string;

@@ -372,7 +372,7 @@ export const api = {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, created_at')
+      .select('id, email, full_name, role, avatar_url, created_at')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as Array<{
@@ -380,6 +380,7 @@ export const api = {
       email: string;
       full_name: string | null;
       role: string;
+      avatar_url: string | null;
       created_at: string;
     }>;
   },

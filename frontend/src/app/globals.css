@@ -161,3 +161,12 @@ body {
 .admin-scroll::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Admin panel: use body (Chakra Petch) for chrome — matches storefront UI text */
+.admin-panel,
+.admin-panel input,
+.admin-panel button,
+.admin-panel select,
+.admin-panel textarea {
+  font-family: var(--fb);
+}

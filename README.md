@@ -32,6 +32,7 @@ CoinSelling/
   supabase/
     migrations/      Schema + RLS
     seed.sql         FC26 coin packs
+    seed_demo.js     Mock customers/orders for admin UI testing
 ```
 
 ## Setup
@@ -41,9 +42,15 @@ CoinSelling/
 1. Create a Supabase project.
 2. Run `supabase/migrations/001_init.sql` then `002_auth_hardening.sql` in the SQL editor (or `node supabase/apply.js` with `DATABASE_URL`).
 3. Run `supabase/seed.sql`.
-4. In Auth settings, enable Email provider.
-5. Create your first user from the storefront **Sign in** page (`/account`).
-6. Promote to admin (pick one):
+4. (Optional) Seed admin demo data — customers, orders across all statuses, price history:
+   ```bash
+   npm run seed:demo
+   # re-run safely with: npm run seed:demo:force
+   ```
+   Demo customers: `*@coinempire.demo` / password `DemoPass123!`
+5. In Auth settings, enable Email provider.
+6. Create your first user from the storefront **Sign in** page (`/account`).
+7. Promote to admin (pick one):
 
 **Option A — bootstrap env (recommended)**
 

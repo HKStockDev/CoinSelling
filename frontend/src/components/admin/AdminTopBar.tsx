@@ -89,7 +89,9 @@ export function AdminTopBar({
       </button>
 
       <div className="min-w-0 shrink-0">
-        <h1 className="font-display text-base leading-tight text-white sm:text-lg">{meta.title}</h1>
+        <h1 className="text-base font-semibold leading-tight tracking-tight text-white sm:text-lg">
+          {meta.title}
+        </h1>
         <p className="hidden text-xs leading-tight text-white/45 sm:block">{meta.subtitle}</p>
       </div>
 

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { AdminTab } from '@/lib/admin-dashboard';
+import { adminPathForTab, type AdminTab } from '@/lib/admin-dashboard';
 import { SITE } from '@/lib/site';
 
 const MAIN: { id: AdminTab; label: string; icon: string }[] = [
@@ -134,19 +134,67 @@ function NavIcon({ name }: { name: string }) {
   }
 }
 
+function NavLink({
+  item,
+  active,
+  badge,
+  collapsed,
+  onNavigate,
+}: {
+  item: { id: AdminTab; label: string; icon: string };
+  active: boolean;
+  badge?: number;
+  collapsed: boolean;
+  onNavigate: () => void;
+}) {
+  return (
+    <li>
+      <Link
+        href={adminPathForTab(item.id)}
+        title={collapsed ? item.label : undefined}
+        onClick={onNavigate}
+        className={`relative flex w-full items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition ${
+          collapsed ? 'justify-center px-2' : 'px-3'
+        } ${
+          active
+            ? 'bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(212,175,55,0.35)]'
+            : 'text-white/65 hover:bg-white/5 hover:text-white'
+        }`}
+      >
+        <span className={`shrink-0 ${active ? 'text-gold' : 'text-white/45'}`}>
+          <NavIcon name={item.icon} />
+        </span>
+        {!collapsed && <span className="flex-1 truncate text-left">{item.label}</span>}
+        {!collapsed && badge != null && badge > 0 && (
+          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
+        {collapsed && badge != null && badge > 0 && (
+          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-danger" />
+        )}
+      </Link>
+    </li>
+  );
+}
+
 export function AdminSidebar({
   tab,
-  onSelect,
   open,
   onClose,
+  collapsed,
+  onToggleCollapse,
   badges = {},
 }: {
   tab: AdminTab;
-  onSelect: (tab: AdminTab) => void;
   open: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
   badges?: Partial<Record<AdminTab, number>>;
 }) {
+  const widthClass = collapsed ? 'lg:w-[72px]' : 'lg:w-[260px]';
+
   return (
     <>
       <div
@@ -157,104 +205,125 @@ export function AdminSidebar({
         aria-hidden
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/8 bg-[#0b0c10] transition-transform lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/8 bg-[#0b0c10] font-sans transition-[width,transform] duration-200 lg:translate-x-0 ${widthClass} ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/8 px-5">
-          <Image
-            src="/brand/logo-png.png"
-            alt={SITE.name}
-            width={140}
-            height={40}
-            className="h-9 w-auto object-contain"
-            priority
-          />
+        <div
+          className={`relative flex h-16 shrink-0 items-center border-b border-white/8 ${
+            collapsed ? 'justify-center px-2' : 'gap-2 px-3'
+          }`}
+        >
+          <Link
+            href="/admin"
+            onClick={onClose}
+            className={`flex min-w-0 items-center ${collapsed ? 'justify-center' : 'flex-1'}`}
+          >
+            {collapsed ? (
+              <Image
+                src="/brand/favi.png"
+                alt={SITE.name}
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+                priority
+              />
+            ) : (
+              <Image
+                src="/brand/logo-png.png"
+                alt={SITE.name}
+                width={140}
+                height={40}
+                className="h-9 w-auto object-contain"
+                priority
+              />
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`hidden shrink-0 items-center justify-center rounded-md border border-white/10 text-white/55 transition hover:border-gold/35 hover:text-gold lg:inline-flex ${
+              collapsed
+                ? 'absolute -right-3 top-1/2 z-10 h-7 w-7 -translate-y-1/2 bg-[#0b0c10] shadow-md'
+                : 'h-8 w-8'
+            }`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={collapsed ? 'rotate-180' : ''}
+              aria-hidden
+            >
+              <path d="M15 6 9 12l6 6" />
+            </svg>
+          </button>
         </div>
 
-        <nav className="admin-scroll min-h-0 flex-1 overflow-y-auto px-3 py-4">
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
-            Main menu
-          </p>
+        <nav className="admin-scroll min-h-0 flex-1 overflow-y-auto px-2 py-4">
+          {!collapsed && (
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+              Main menu
+            </p>
+          )}
           <ul className="space-y-0.5">
-            {MAIN.map((item) => {
-              const active = tab === item.id;
-              const badge = badges[item.id] ?? 0;
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(item.id);
-                      onClose();
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                      active
-                        ? 'bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(212,175,55,0.35)]'
-                        : 'text-white/65 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <span className={active ? 'text-gold' : 'text-white/45'}>
-                      <NavIcon name={item.icon} />
-                    </span>
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {badge > 0 && (
-                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
-                        {badge > 99 ? '99+' : badge}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
+            {MAIN.map((item) => (
+              <NavLink
+                key={item.id}
+                item={item}
+                active={tab === item.id}
+                badge={badges[item.id]}
+                collapsed={collapsed}
+                onNavigate={onClose}
+              />
+            ))}
           </ul>
 
-          <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
-            Tools
-          </p>
+          {!collapsed && (
+            <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+              Tools
+            </p>
+          )}
+          {collapsed && <div className="my-3 mx-2 border-t border-white/8" />}
           <ul className="space-y-0.5">
-            {TOOLS.map((item) => {
-              const active = tab === item.id;
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(item.id);
-                      onClose();
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                      active
-                        ? 'bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(212,175,55,0.35)]'
-                        : 'text-white/65 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <span className={active ? 'text-gold' : 'text-white/45'}>
-                      <NavIcon name={item.icon} />
-                    </span>
-                    {item.label}
-                  </button>
-                </li>
-              );
-            })}
+            {TOOLS.map((item) => (
+              <NavLink
+                key={item.id}
+                item={item}
+                active={tab === item.id}
+                collapsed={collapsed}
+                onNavigate={onClose}
+              />
+            ))}
           </ul>
 
-          <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
-            Store
-          </p>
+          {!collapsed && (
+            <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+              Store
+            </p>
+          )}
+          {collapsed && <div className="my-3 mx-2 border-t border-white/8" />}
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/65 transition hover:bg-white/5 hover:text-white"
+            title={collapsed ? 'View store' : undefined}
+            className={`flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium text-white/65 transition hover:bg-white/5 hover:text-white ${
+              collapsed ? 'justify-center px-2' : 'px-3'
+            }`}
           >
-            <span className="text-white/45">
+            <span className="shrink-0 text-white/45">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
                 <path d="M14 4h6v6" />
                 <path d="M10 14 20 4" />
                 <path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5" />
               </svg>
             </span>
-            View store
+            {!collapsed && 'View store'}
           </Link>
         </nav>
       </aside>

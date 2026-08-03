@@ -75,7 +75,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
                   Total sales
                 </p>
-                <p className="mt-2 font-display text-2xl text-white sm:text-3xl">
+                <p className="mt-2 font-semibold text-2xl text-white sm:text-3xl">
                   {formatGbp(data.kpis.sales.valuePence)}
                 </p>
                 <div className="mt-2">
@@ -100,7 +100,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
                   Orders
                 </p>
-                <p className="mt-2 font-display text-2xl text-white sm:text-3xl">
+                <p className="mt-2 font-semibold text-2xl text-white sm:text-3xl">
                   {data.kpis.orders.value.toLocaleString('en-GB')}
                 </p>
                 <div className="mt-2">
@@ -126,7 +126,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
                   Users
                 </p>
-                <p className="mt-2 font-display text-2xl text-white sm:text-3xl">
+                <p className="mt-2 font-semibold text-2xl text-white sm:text-3xl">
                   {data.kpis.users.value.toLocaleString('en-GB')}
                 </p>
                 <div className="mt-2">
@@ -161,7 +161,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         <Card className="p-4 sm:p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-sm uppercase tracking-[0.08em] text-white">
+              <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
                 Sales &amp; orders
               </h2>
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-white/50">
@@ -181,7 +181,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         </Card>
 
         <Card className="flex flex-col p-4 sm:p-5">
-          <h2 className="font-display text-sm uppercase tracking-[0.08em] text-white">
+          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Recent orders
           </h2>
           <ul className="mt-4 flex-1 space-y-3">
@@ -232,7 +232,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="p-4 sm:p-5">
-          <h2 className="font-display text-sm uppercase tracking-[0.08em] text-white">
+          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Sales by platform
           </h2>
           <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
@@ -258,7 +258,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         </Card>
 
         <Card className="p-4 sm:p-5">
-          <h2 className="font-display text-sm uppercase tracking-[0.08em] text-white">
+          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Best sellers
           </h2>
           <ul className="mt-4 space-y-3">
@@ -292,7 +292,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         </Card>
 
         <Card className="p-4 sm:p-5">
-          <h2 className="font-display text-sm uppercase tracking-[0.08em] text-white">
+          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Recent activity
           </h2>
           <ul className="mt-4 space-y-3">
@@ -315,24 +315,24 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="px-4 py-3">
           <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Conversion rate</p>
-          <p className="mt-1 font-display text-xl text-white">{data.bottom.conversionRate}%</p>
+          <p className="mt-1 font-semibold text-xl text-white">{data.bottom.conversionRate}%</p>
           <ChangeBadge value={data.bottom.conversionChange} />
         </Card>
         <Card className="px-4 py-3">
           <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Avg. ticket</p>
-          <p className="mt-1 font-display text-xl text-white">
+          <p className="mt-1 font-semibold text-xl text-white">
             {formatGbp(data.bottom.avgTicketPence)}
           </p>
           <ChangeBadge value={data.bottom.avgTicketChange} />
         </Card>
         <Card className="px-4 py-3">
           <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Chargebacks</p>
-          <p className="mt-1 font-display text-xl text-white">{data.bottom.chargebacks}</p>
+          <p className="mt-1 font-semibold text-xl text-white">{data.bottom.chargebacks}</p>
           <ChangeBadge value={data.bottom.chargebacksChange} />
         </Card>
         <Card className="px-4 py-3">
           <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">Pending payments</p>
-          <p className="mt-1 font-display text-xl text-gold">{data.bottom.pendingCount}</p>
+          <p className="mt-1 font-semibold text-xl text-gold">{data.bottom.pendingCount}</p>
           <p className="text-xs text-white/45">{formatGbp(data.bottom.pendingPence)}</p>
         </Card>
       </div>
@@ -343,7 +343,7 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
 export function ComingSoon({ title }: { title: string }) {
   return (
     <Card className="flex min-h-[320px] flex-col items-center justify-center p-8 text-center animate-rise">
-      <p className="font-display text-2xl text-gold">{title}</p>
+      <p className="font-semibold text-2xl text-gold">{title}</p>
       <p className="mt-2 max-w-md text-sm text-white/50">
         This module is wired into the admin shell and will connect to live data in a later
         release. Use Dashboard, Orders, Users, and Products for day-to-day operations.

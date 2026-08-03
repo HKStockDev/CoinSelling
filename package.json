@@ -6,6 +6,8 @@
     "dev:web": "npm --prefix frontend run dev",
     "dev:api": "npm --prefix backend run start:dev",
     "build:web": "npm --prefix frontend run build",
-    "build:api": "npm --prefix backend run build"
+    "build:api": "npm --prefix backend run build",
+    "seed:demo": "node supabase/seed_demo.js",
+    "seed:demo:force": "node supabase/seed_demo.js --force"
   }
 }

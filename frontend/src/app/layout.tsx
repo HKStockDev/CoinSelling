@@ -1,4 +1,4 @@
-import { Russo_One, Chakra_Petch } from 'next/font/google';
+import { Russo_One, Chakra_Petch, Plus_Jakarta_Sans } from 'next/font/google';
 import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/lib/cart';
@@ -16,6 +16,13 @@ const body = Chakra_Petch({
   weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-body',
+});
+
+/** Admin UI — modern product sans (scoped via --font-admin-face) */
+const admin = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-admin-face',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -48,7 +55,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${admin.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-black antialiased">
         <AuthProvider>
           <CartProvider>

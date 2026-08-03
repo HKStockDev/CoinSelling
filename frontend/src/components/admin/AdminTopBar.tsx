@@ -151,15 +151,6 @@ export function AdminTopBar({
       <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <button
           type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white/70"
-          aria-label="Theme"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5Z" />
-          </svg>
-        </button>
-        <button
-          type="button"
           className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white/70"
           aria-label="Notifications"
         >

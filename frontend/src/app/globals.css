@@ -20,6 +20,7 @@
   --foreground: #ffffff;
   --fh: var(--font-display), "Russo One", sans-serif;
   --fb: var(--font-body), "Chakra Petch", sans-serif;
+  --fa: var(--font-admin-face), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -39,6 +40,7 @@
   --color-danger: var(--danger);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
+  --font-admin: var(--fa);
 }
 
 * {
@@ -162,11 +164,29 @@ body {
   background: transparent;
 }
 
-/* Admin panel: use body (Chakra Petch) for chrome — matches storefront UI text */
-.admin-panel,
+/* Admin panel: modern UI sans (next/font → --font-admin) */
+.admin-panel {
+  font-family: var(--fa);
+  font-feature-settings: 'ss01' on, 'cv11' on, 'tnum' on;
+  letter-spacing: -0.011em;
+  text-rendering: optimizeLegibility;
+}
+
 .admin-panel input,
 .admin-panel button,
 .admin-panel select,
 .admin-panel textarea {
-  font-family: var(--fb);
+  font-family: inherit;
+}
+
+/* Hide default number input spinners */
+.admin-panel input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.admin-panel input[type='number']::-webkit-inner-spin-button,
+.admin-panel input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

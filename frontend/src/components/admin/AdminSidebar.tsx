@@ -205,13 +205,13 @@ export function AdminSidebar({
         aria-hidden
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/8 bg-[#0b0c10] font-sans transition-[width,transform] duration-200 lg:translate-x-0 ${widthClass} ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/8 bg-[#0b0c10] font-admin transition-[width,transform] duration-200 lg:translate-x-0 ${widthClass} ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div
-          className={`relative flex h-16 shrink-0 items-center border-b border-white/8 ${
-            collapsed ? 'justify-center px-2' : 'gap-2 px-3'
+          className={`flex shrink-0 items-center border-b border-white/8 ${
+            collapsed ? 'h-auto flex-col gap-2 px-2 py-3' : 'h-16 gap-2 px-3'
           }`}
         >
           <Link
@@ -242,11 +242,7 @@ export function AdminSidebar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className={`hidden shrink-0 items-center justify-center rounded-md border border-white/10 text-white/55 transition hover:border-gold/35 hover:text-gold lg:inline-flex ${
-              collapsed
-                ? 'absolute -right-3 top-1/2 z-10 h-7 w-7 -translate-y-1/2 bg-[#0b0c10] shadow-md'
-                : 'h-8 w-8'
-            }`}
+            className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 text-white/55 transition hover:border-gold/35 hover:text-gold lg:inline-flex"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >

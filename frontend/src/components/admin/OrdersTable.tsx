@@ -14,6 +14,15 @@ export type AdminOrder = {
   order_items?: Array<{ product_name: string; quantity: number }>;
 };
 
+export type OrderSortKey =
+  | 'order_number'
+  | 'name'
+  | 'email'
+  | 'platform'
+  | 'status'
+  | 'date'
+  | 'total';
+
 const STATUS_ACTIONS = [
   {
     status: 'paid',
@@ -168,12 +177,52 @@ function formatWhen(iso: string) {
   }
 }
 
+function SortHeader({
+  label,
+  column,
+  sortKey,
+  sortDir,
+  onSort,
+  align = 'left',
+}: {
+  label: string;
+  column: OrderSortKey;
+  sortKey: OrderSortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (key: OrderSortKey) => void;
+  align?: 'left' | 'right';
+}) {
+  const active = sortKey === column;
+  return (
+    <th className={`px-4 py-3 font-semibold ${align === 'right' ? 'text-right' : ''}`}>
+      <button
+        type="button"
+        onClick={() => onSort(column)}
+        className={`inline-flex items-center gap-1 uppercase tracking-[0.12em] transition hover:text-white ${
+          align === 'right' ? 'flex-row-reverse' : ''
+        } ${active ? 'text-gold' : 'text-white/40'}`}
+      >
+        {label}
+        <span className="inline-flex w-3 justify-center text-[10px]" aria-hidden>
+          {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+        </span>
+      </button>
+    </th>
+  );
+}
+
 export function OrdersTable({
   orders,
   onUpdateStatus,
+  sortKey = 'date',
+  sortDir = 'desc',
+  onSort,
 }: {
   orders: AdminOrder[];
   onUpdateStatus: (orderId: string, status: string) => void | Promise<void>;
+  sortKey?: OrderSortKey;
+  sortDir?: 'asc' | 'desc';
+  onSort?: (key: OrderSortKey) => void;
 }) {
   if (orders.length === 0) {
     return (
@@ -183,19 +232,60 @@ export function OrdersTable({
     );
   }
 
+  const handleSort = onSort ?? (() => undefined);
+
   return (
     <div className="animate-rise overflow-hidden rounded-xl border border-white/8 bg-[#12141a]">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[920px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-white/8 bg-white/[0.02] text-[11px] uppercase tracking-[0.12em] text-white/40">
-              <th className="px-4 py-3 font-semibold">Order</th>
-              <th className="px-4 py-3 font-semibold">Customer</th>
-              <th className="px-4 py-3 font-semibold">Platform</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Actions</th>
-              <th className="px-4 py-3 font-semibold">Date</th>
-              <th className="px-4 py-3 text-right font-semibold">Total</th>
+            <tr className="border-b border-white/8 bg-white/[0.02] text-[11px]">
+              <SortHeader
+                label="Order"
+                column="order_number"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortHeader
+                label="Customer"
+                column="name"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortHeader
+                label="Platform"
+                column="platform"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortHeader
+                label="Status"
+                column="status"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <th className="px-4 py-3 font-semibold uppercase tracking-[0.12em] text-white/40">
+                Actions
+              </th>
+              <SortHeader
+                label="Date"
+                column="date"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortHeader
+                label="Total"
+                column="total"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+                align="right"
+              />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/6">

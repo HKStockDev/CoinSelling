@@ -132,7 +132,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] font-sans text-sm text-white/60">
+      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] font-admin text-sm text-white/60">
         Loading admin…
       </div>
     );
@@ -140,7 +140,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-sans">
+      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin">
         <div className="max-w-md text-center">
           <Image
             src="/brand/logo-png.png"
@@ -164,7 +164,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (user.role !== 'admin') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-sans">
+      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-white">Access denied</h1>
           <p className="mt-2 text-sm text-white/55">
@@ -181,7 +181,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <AdminShellContext.Provider value={ctx}>
-      <div className="flex h-dvh overflow-hidden bg-[#0b0c10] font-sans text-white antialiased admin-panel">
+      <div className="flex h-dvh overflow-hidden bg-[#0b0c10] font-admin text-white antialiased admin-panel">
         <AdminSidebar
           tab={tab}
           open={sidebarOpen}

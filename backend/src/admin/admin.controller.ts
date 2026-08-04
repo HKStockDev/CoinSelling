@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -137,6 +138,11 @@ export class AdminController {
   @Post('products')
   upsertProduct(@Body() body: UpsertProductDto) {
     return this.adminService.upsertProduct(body);
+  }
+
+  @Delete('products/:id')
+  deleteProduct(@Param('id') id: string) {
+    return this.adminService.deleteProduct(id);
   }
 
   @Get('orders')

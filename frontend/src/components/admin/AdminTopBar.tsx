@@ -139,7 +139,7 @@ export function AdminTopBar({
           <input
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search users, orders, transactions…"
+            placeholder="Search products, prices, users, orders…"
             className="w-full rounded-full border border-white/10 bg-[#14161c] py-2 pl-10 pr-16 text-sm text-white outline-none placeholder:text-white/35 focus:border-gold/40"
           />
           <kbd className="pointer-events-none absolute right-3 hidden rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-white/40 sm:inline">

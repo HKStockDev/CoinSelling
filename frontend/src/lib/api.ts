@@ -1,4 +1,4 @@
-import type { Product } from './site';
+import type { Platform, Product } from './site';
 import { getSupabase, hasSupabaseConfig } from './supabase';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
@@ -224,6 +224,57 @@ export const api = {
     });
   },
 
+  async createCustomer(
+    _token: string,
+    body: {
+      email: string;
+      password: string;
+      fullName?: string;
+      role?: 'customer' | 'admin';
+    },
+  ) {
+    return request<{
+      id: string;
+      email: string;
+      full_name: string | null;
+      role: string;
+      avatar_url: string | null;
+      created_at: string;
+    }>('/admin/customers', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+
+  async updateCustomer(
+    _token: string,
+    userId: string,
+    body: {
+      email?: string;
+      password?: string;
+      fullName?: string | null;
+      role?: 'customer' | 'admin';
+    },
+  ) {
+    return request<{
+      id: string;
+      email: string;
+      full_name: string | null;
+      role: string;
+      avatar_url: string | null;
+      created_at: string;
+    }>(`/admin/customers/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  },
+
+  async deleteCustomer(_token: string, userId: string) {
+    return request<{ ok: boolean }>(`/admin/customers/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
   async adminDashboard(_token: string) {
     const { buildAdminDashboard } = await import('./admin-dashboard');
     const supabase = getSupabase();
@@ -325,6 +376,48 @@ export const api = {
     });
 
     return data;
+  },
+
+  async createProduct(
+    _token: string,
+    body: {
+      slug: string;
+      name: string;
+      description?: string;
+      coinAmount: number;
+      bonusCoins?: number;
+      priceGbpPence: number;
+      compareAtGbpPence?: number | null;
+      platform: Platform;
+      isActive?: boolean;
+      sortOrder?: number;
+    },
+  ) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        slug: body.slug,
+        name: body.name,
+        description: body.description ?? '',
+        coin_amount: body.coinAmount,
+        bonus_coins: body.bonusCoins ?? 0,
+        price_gbp_pence: body.priceGbpPence,
+        compare_at_gbp_pence: body.compareAtGbpPence ?? null,
+        platform: body.platform,
+        is_active: body.isActive ?? true,
+        sort_order: body.sortOrder ?? 0,
+      })
+      .select('*')
+      .single();
+    if (error) throw new Error(error.message);
+    return data as Product;
+  },
+
+  async deleteProduct(_token: string, id: string) {
+    const supabase = getSupabase();
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   async adminOrders(_token: string) {

@@ -346,6 +346,23 @@ export class AdminService {
     return data;
   }
 
+  async deleteProduct(productId: string) {
+    const { data: current, error: findError } = await this.supabase.db
+      .from('products')
+      .select('id')
+      .eq('id', productId)
+      .maybeSingle();
+    if (findError) throw findError;
+    if (!current) throw new NotFoundException('Product not found');
+
+    const { error } = await this.supabase.db
+      .from('products')
+      .delete()
+      .eq('id', productId);
+    if (error) throw new BadRequestException(error.message);
+    return { ok: true };
+  }
+
   async listOrders(status?: OrderStatus) {
     let query = this.supabase.db
       .from('orders')

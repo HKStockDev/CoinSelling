@@ -10,19 +10,19 @@ const MAIN: { id: AdminTab; label: string; icon: string }[] = [
   { id: 'orders', label: 'Orders', icon: 'cart' },
   { id: 'customers', label: 'Users', icon: 'users' },
   { id: 'products', label: 'Products', icon: 'box' },
-  { id: 'coupons', label: 'Coupons', icon: 'ticket' },
-  { id: 'transactions', label: 'Transactions', icon: 'card' },
-  { id: 'withdrawals', label: 'Withdrawals', icon: 'cash' },
-  { id: 'support', label: 'Support', icon: 'chat' },
-  { id: 'settings', label: 'Settings', icon: 'gear' },
+  // { id: 'coupons', label: 'Coupons', icon: 'ticket' },
+  // { id: 'transactions', label: 'Transactions', icon: 'card' },
+  // { id: 'withdrawals', label: 'Withdrawals', icon: 'cash' },
+  // { id: 'support', label: 'Support', icon: 'chat' },
+  // { id: 'settings', label: 'Settings', icon: 'gear' },
 ];
 
-const TOOLS: { id: AdminTab; label: string; icon: string }[] = [
-  { id: 'logs', label: 'System Logs', icon: 'list' },
-  { id: 'reports', label: 'Reports', icon: 'chart' },
-  { id: 'notifications', label: 'Notifications', icon: 'bell' },
-  { id: 'backups', label: 'Backups', icon: 'backup' },
-];
+// const TOOLS: { id: AdminTab; label: string; icon: string }[] = [
+//   { id: 'logs', label: 'System Logs', icon: 'list' },
+//   { id: 'reports', label: 'Reports', icon: 'chart' },
+//   { id: 'notifications', label: 'Notifications', icon: 'bell' },
+//   { id: 'backups', label: 'Backups', icon: 'backup' },
+// ];
 
 function NavIcon({ name }: { name: string }) {
   const common = {
@@ -185,6 +185,8 @@ export function AdminSidebar({
   collapsed,
   onToggleCollapse,
   badges = {},
+  adminName,
+  adminEmail,
 }: {
   tab: AdminTab;
   open: boolean;
@@ -192,8 +194,12 @@ export function AdminSidebar({
   collapsed: boolean;
   onToggleCollapse: () => void;
   badges?: Partial<Record<AdminTab, number>>;
+  adminName?: string;
+  adminEmail?: string;
 }) {
   const widthClass = collapsed ? 'lg:w-[72px]' : 'lg:w-[260px]';
+  const displayName = adminName || 'Admin';
+  const displayEmail = adminEmail || '';
 
   return (
     <>
@@ -280,6 +286,7 @@ export function AdminSidebar({
             ))}
           </ul>
 
+          {/* Tools
           {!collapsed && (
             <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
               Tools
@@ -297,6 +304,7 @@ export function AdminSidebar({
               />
             ))}
           </ul>
+          */}
 
           {!collapsed && (
             <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
@@ -322,6 +330,38 @@ export function AdminSidebar({
             {!collapsed && 'View store'}
           </Link>
         </nav>
+
+        <div
+          className={`shrink-0 border-t border-white/8 ${
+            collapsed ? 'px-2 py-3' : 'px-3 py-3'
+          }`}
+        >
+          <div
+            className={`flex items-center rounded-lg bg-white/[0.03] ${
+              collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2'
+            }`}
+            title={collapsed ? `${displayName} · Online` : undefined}
+          >
+            <div className="relative shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gold/20 text-xs font-semibold text-gold">
+                <Image src="/brand/favi.png" alt="" width={32} height={32} className="h-8 w-8 object-cover" />
+              </div>
+              <span
+                className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0b0c10] bg-green"
+                aria-hidden
+              />
+            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-white">{displayName}</p>
+                <p className="truncate text-[11px] text-white/45">
+                  <span className="text-green">Online</span>
+                  {displayEmail ? ` · ${displayEmail}` : ' · Administrator'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </aside>
     </>
   );

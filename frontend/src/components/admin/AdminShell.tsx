@@ -19,6 +19,7 @@ import {
 } from '@/lib/admin-dashboard';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminTopBar';
+import { AdminToast } from '@/components/admin/AdminToast';
 import { computeOrderStats } from '@/components/admin/OrdersTable';
 
 type AdminShellContextValue = {
@@ -189,6 +190,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           collapsed={collapsed}
           onToggleCollapse={toggleCollapse}
           badges={{ orders: orderStats.newCount }}
+          adminName={user.fullName || user.email.split('@')[0] || 'Admin'}
+          adminEmail={user.email}
         />
 
         <div
@@ -208,16 +211,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           />
 
           <div className="admin-scroll min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">
-            {message && (
-              <p className="mb-4 rounded-lg border border-green/30 bg-green/10 px-3 py-2 text-sm text-green">
-                {message}
-              </p>
-            )}
-            {error && (
-              <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-                {error}
-              </p>
-            )}
             {children}
           </div>
 
@@ -225,18 +218,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <span className="truncate whitespace-nowrap">
               FutCoins Empire Admin Panel · v2.1.0
             </span>
-            <div className="flex shrink-0 items-center gap-4 whitespace-nowrap">
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                className="text-white/50 hover:text-gold"
-              >
-                Sign out
-              </button>
-              <span>© {new Date().getFullYear()} FutCoins Empire. All rights reserved.</span>
-            </div>
+            <span className="shrink-0 whitespace-nowrap">
+              © {new Date().getFullYear()} FutCoins Empire. All rights reserved.
+            </span>
           </footer>
         </div>
+
+        <AdminToast
+          message={message}
+          error={error}
+          onDismissMessage={() => setMessage(null)}
+          onDismissError={() => setError(null)}
+        />
       </div>
     </AdminShellContext.Provider>
   );

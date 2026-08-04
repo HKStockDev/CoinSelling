@@ -34,9 +34,13 @@ export function Sparkline({
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} outline-none [&_.recharts-wrapper]:outline-none [&_.recharts-surface]:outline-none`}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+        <AreaChart
+          data={data}
+          margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+          style={{ outline: 'none' }}
+        >
           <defs>
             <linearGradient id={`spark-${gradId}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity={0.45} />
@@ -119,11 +123,12 @@ export function SalesOrdersChart({
   );
 
   return (
-    <div className={className}>
+    <div className={`${className} outline-none [&_.recharts-wrapper]:outline-none [&_.recharts-surface]:outline-none`}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}
           margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+          style={{ outline: 'none' }}
         >
           <defs>
             <linearGradient id={`sales-${gradId}`} x1="0" y1="0" x2="0" y2="1">

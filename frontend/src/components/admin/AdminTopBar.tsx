@@ -96,27 +96,49 @@ export function AdminTopBar({
       </div>
 
       {tab === 'orders' && orderStats && (
-        <div className="hidden min-w-0 items-center gap-1 xl:flex">
+        <div className="hidden min-w-0 max-w-[42%] items-center gap-1.5 overflow-x-auto [scrollbar-width:none] xl:flex [&::-webkit-scrollbar]:hidden">
           {[
-            { label: 'Total', value: String(orderStats.total), tone: 'text-white' },
-            { label: 'Paid', value: String(orderStats.paid), tone: 'text-green' },
-            { label: 'Proc.', value: String(orderStats.processing), tone: 'text-sky-300' },
-            { label: 'Done', value: String(orderStats.delivered), tone: 'text-gold' },
             {
-              label: 'Rev.',
+              label: 'Total',
+              value: String(orderStats.total),
+              className: 'bg-white/[0.05] text-white ring-white/12',
+            },
+            {
+              label: 'Paid',
+              value: String(orderStats.paid),
+              className: 'bg-green/10 text-green ring-green/25',
+            },
+            {
+              label: 'Processing',
+              value: String(orderStats.processing),
+              className: 'bg-sky-500/10 text-sky-300 ring-sky-400/25',
+            },
+            {
+              label: 'Complete',
+              value: String(orderStats.delivered),
+              className: 'bg-gold/10 text-gold ring-gold/25',
+            },
+            {
+              label: 'Cancelled',
+              value: String(orderStats.cancelled),
+              className: 'bg-danger/10 text-danger ring-danger/25',
+            },
+            {
+              label: 'Revenue',
               value: formatGbp(orderStats.revenuePence),
-              tone: 'text-gold',
+              className: 'bg-gold/10 text-gold ring-gold/25',
             },
           ].map((stat) => (
             <div
               key={stat.label}
-              className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-0.5"
-              title={stat.label}
+              title={`${stat.label}: ${stat.value}`}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 ring-inset ${stat.className}`}
             >
-              <p className="text-[8px] font-semibold uppercase tracking-[0.1em] text-white/35">
-                {stat.label}
-              </p>
-              <p className={`text-[11px] font-semibold leading-tight ${stat.tone}`}>{stat.value}</p>
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
+              <span className="text-[10px] font-medium opacity-70">{stat.label}</span>
+              <span className="text-[11px] font-semibold tabular-nums leading-none">
+                {stat.value}
+              </span>
             </div>
           ))}
         </div>

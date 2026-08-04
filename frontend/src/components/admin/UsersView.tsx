@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { formatGbp } from '@/lib/admin-dashboard';
@@ -14,6 +15,7 @@ type UserFormMode = 'create' | 'edit';
 type UserFormState = {
   email: string;
   password: string;
+  confirmPassword: string;
   fullName: string;
   role: 'customer' | 'admin';
 };
@@ -21,11 +23,62 @@ type UserFormState = {
 const EMPTY_FORM: UserFormState = {
   email: '',
   password: '',
+  confirmPassword: '',
   fullName: '',
   role: 'customer',
 };
 
 const PAID_STATUSES = new Set(['paid', 'processing', 'delivered']);
+
+const ROW_GRID =
+  'grid grid-cols-1 items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)_minmax(0,1.1fr)_auto] md:gap-4';
+
+function IconPlus({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function IconEdit({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function IconTrash({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function IconEye({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+        <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+        <path d="m1 1 22 22" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
 
 function Avatar({
   name,
@@ -64,11 +117,9 @@ function BuyStatus({
 }) {
   if (orderCount === 0) {
     return (
-      <div className="min-w-0">
-        <span className="inline-flex items-center rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-white/40 ring-1 ring-inset ring-white/10">
-          No purchases
-        </span>
-      </div>
+      <span className="inline-flex w-fit items-center rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-white/40 ring-1 ring-inset ring-white/10">
+        No purchases
+      </span>
     );
   }
 
@@ -80,6 +131,62 @@ function BuyStatus({
         {spentPence > 0 ? ` · ${formatGbp(spentPence)} spent` : ''}
       </p>
     </div>
+  );
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  required,
+  placeholder,
+  autoComplete,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  placeholder?: string;
+  autoComplete?: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <label className="block text-xs text-white/50">
+      {label}
+      <span className="relative mt-1 block">
+        <input
+          required={required}
+          type={visible ? 'text' : 'password'}
+          minLength={6}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          className="w-full rounded-lg border border-white/10 bg-[#0b0c10] py-2 pl-3 pr-10 text-sm text-white"
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/40 transition hover:text-white/80"
+          aria-label={visible ? 'Hide password' : 'Show password'}
+        >
+          <IconEye open={visible} />
+        </button>
+      </span>
+    </label>
+  );
+}
+
+function ModalOverlay({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+      {children}
+    </div>,
+    document.body,
   );
 }
 
@@ -193,6 +300,7 @@ export function UsersView() {
     setForm({
       email: c.email,
       password: '',
+      confirmPassword: '',
       fullName: c.full_name ?? '',
       role: c.role === 'admin' ? 'admin' : 'customer',
     });
@@ -210,13 +318,27 @@ export function UsersView() {
   async function submitForm(e: FormEvent) {
     e.preventDefault();
     if (!user || !formMode) return;
+
+    const password = form.password.trim();
+    const confirm = form.confirmPassword.trim();
+    if (formMode === 'create' || password || confirm) {
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+      if (password !== confirm) {
+        setError('Passwords do not match');
+        return;
+      }
+    }
+
     setSaving(true);
     setError(null);
     try {
       if (formMode === 'create') {
         await api.createCustomer(user.accessToken, {
           email: form.email.trim(),
-          password: form.password,
+          password,
           fullName: form.fullName.trim() || undefined,
           role: form.role,
         });
@@ -234,8 +356,8 @@ export function UsersView() {
         if (form.email.trim().toLowerCase() !== editing.email.toLowerCase()) {
           payload.email = form.email.trim();
         }
-        if (form.password.trim()) {
-          payload.password = form.password;
+        if (password) {
+          payload.password = password;
         }
         await api.updateCustomer(user.accessToken, editing.id, payload);
         setMessage(`Updated ${form.email.trim()}.`);
@@ -245,22 +367,6 @@ export function UsersView() {
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);
-    }
-  }
-
-  async function changeRole(c: Customer) {
-    if (!user || c.id === user.id) return;
-    const nextRole = c.role === 'admin' ? 'customer' : 'admin';
-    setBusyId(c.id);
-    setError(null);
-    try {
-      await api.setCustomerRole(user.accessToken, c.id, nextRole);
-      await refreshCustomers();
-      setMessage(`${c.email} is now ${nextRole}.`);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusyId(null);
     }
   }
 
@@ -293,22 +399,29 @@ export function UsersView() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-lg bg-gold px-3 py-2 text-xs font-semibold uppercase tracking-wide text-black transition hover:bg-gold/90"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gold text-black transition hover:bg-gold/90"
+          aria-label="Add user"
+          title="Add user"
         >
-          Add user
+          <IconPlus />
         </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[#12141a]">
+        <div
+          className={`${ROW_GRID} hidden border-b border-white/6 text-[11px] font-semibold uppercase tracking-wide text-white/35 md:grid`}
+        >
+          <span>User</span>
+          <span>Email</span>
+          <span>Role / Buy status</span>
+          <span className="text-right">Actions</span>
+        </div>
         <ul className="divide-y divide-white/6">
           {filtered.map((c) => {
             const buy = buyFor(c);
             const isSelf = c.id === user?.id;
             return (
-              <li
-                key={c.id}
-                className="grid grid-cols-1 items-center gap-3 px-4 py-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_auto_minmax(0,1fr)_auto] lg:gap-4"
-              >
+              <li key={c.id} className={ROW_GRID}>
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar name={c.full_name} email={c.email} url={c.avatar_url} />
                   <div className="min-w-0">
@@ -321,54 +434,47 @@ export function UsersView() {
                   </div>
                 </div>
 
-                <p className="truncate text-sm text-white/50">{c.email}</p>
+                <p className="min-w-0 truncate text-sm text-white/50">{c.email}</p>
 
-                <span
-                  className={`inline-flex w-fit items-center rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                    c.role === 'admin'
-                      ? 'bg-white/10 text-white'
-                      : 'bg-white/[0.04] text-white/45'
-                  }`}
-                >
-                  {c.role}
-                </span>
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:flex-col md:items-start lg:flex-row lg:items-center">
+                  <span
+                    className={`inline-flex w-fit shrink-0 items-center rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                      c.role === 'admin'
+                        ? 'bg-white/10 text-white'
+                        : 'bg-white/[0.04] text-white/45'
+                    }`}
+                  >
+                    {c.role}
+                  </span>
+                  <BuyStatus
+                    orderCount={buy?.orderCount ?? 0}
+                    latestStatus={buy?.latestStatus ?? null}
+                    spentPence={buy?.spentPence ?? 0}
+                  />
+                </div>
 
-                <BuyStatus
-                  orderCount={buy?.orderCount ?? 0}
-                  latestStatus={buy?.latestStatus ?? null}
-                  spentPence={buy?.spentPence ?? 0}
-                />
-
-                <div className="flex flex-wrap gap-2 lg:justify-end">
+                <div className="flex items-center gap-1.5 md:justify-end">
                   <button
                     type="button"
                     disabled={busyId === c.id}
-                    className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white/70 transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 text-white/70 transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
                     onClick={() => openEdit(c)}
+                    aria-label={`Edit ${c.email}`}
+                    title="Edit"
                   >
-                    Edit
+                    <IconEdit />
                   </button>
                   {!isSelf ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled={busyId === c.id}
-                        className="rounded-lg border border-gold/35 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gold transition hover:border-gold hover:bg-gold/10 disabled:opacity-50"
-                        onClick={() => void changeRole(c)}
-                      >
-                        {busyId === c.id
-                          ? '…'
-                          : `Make ${c.role === 'admin' ? 'customer' : 'admin'}`}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === c.id}
-                        className="rounded-lg border border-danger/35 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-danger transition hover:border-danger hover:bg-danger/10 disabled:opacity-50"
-                        onClick={() => setConfirmDelete(c)}
-                      >
-                        Delete
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      disabled={busyId === c.id}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-danger/35 text-danger transition hover:border-danger hover:bg-danger/10 disabled:opacity-50"
+                      onClick={() => setConfirmDelete(c)}
+                      aria-label={`Delete ${c.email}`}
+                      title="Delete"
+                    >
+                      <IconTrash />
+                    </button>
                   ) : null}
                 </div>
               </li>
@@ -383,10 +489,10 @@ export function UsersView() {
       </div>
 
       {formMode ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <ModalOverlay>
           <form
             onSubmit={(e) => void submitForm(e)}
-            className="w-full max-w-md space-y-4 rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl"
+            className="max-h-[min(90dvh,40rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -396,13 +502,13 @@ export function UsersView() {
                 <p className="mt-1 text-xs text-white/40">
                   {formMode === 'create'
                     ? 'Creates a login the customer can use immediately.'
-                    : 'Leave password blank to keep the current password.'}
+                    : 'Leave password blank to keep the current password. Change role here if needed.'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeForm}
-                className="text-white/40 transition hover:text-white"
+                className="text-xl leading-none text-white/40 transition hover:text-white"
                 aria-label="Close"
               >
                 ×
@@ -431,18 +537,23 @@ export function UsersView() {
               />
             </label>
 
-            <label className="block text-xs text-white/50">
-              {formMode === 'create' ? 'Password' : 'New password'}
-              <input
-                required={formMode === 'create'}
-                type="password"
-                minLength={6}
-                value={form.password}
-                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white"
-                placeholder={formMode === 'create' ? 'At least 6 characters' : 'Optional'}
-              />
-            </label>
+            <PasswordField
+              label={formMode === 'create' ? 'Password' : 'New password'}
+              value={form.password}
+              onChange={(password) => setForm((f) => ({ ...f, password }))}
+              required={formMode === 'create'}
+              placeholder={formMode === 'create' ? 'At least 6 characters' : 'Optional'}
+              autoComplete={formMode === 'create' ? 'new-password' : 'new-password'}
+            />
+
+            <PasswordField
+              label={formMode === 'create' ? 'Confirm password' : 'Confirm new password'}
+              value={form.confirmPassword}
+              onChange={(confirmPassword) => setForm((f) => ({ ...f, confirmPassword }))}
+              required={formMode === 'create' || form.password.length > 0}
+              placeholder="Re-enter password"
+              autoComplete="new-password"
+            />
 
             <label className="block text-xs text-white/50">
               Role
@@ -479,11 +590,11 @@ export function UsersView() {
               </button>
             </div>
           </form>
-        </div>
+        </ModalOverlay>
       ) : null}
 
       {confirmDelete ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <ModalOverlay>
           <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl">
             <h2 className="text-lg font-semibold text-white">Delete user?</h2>
             <p className="text-sm text-white/55">
@@ -509,7 +620,7 @@ export function UsersView() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalOverlay>
       ) : null}
     </div>
   );

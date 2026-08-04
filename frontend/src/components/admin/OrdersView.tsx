@@ -197,37 +197,46 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
       {showStats && (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:hidden">
           {[
-            { label: 'Total', value: String(filteredOrderStats.total), tone: 'text-white' },
-            { label: 'Paid', value: String(filteredOrderStats.paid), tone: 'text-green' },
+            {
+              label: 'Total',
+              value: String(filteredOrderStats.total),
+              className: 'bg-white/[0.04] text-white ring-white/12',
+            },
+            {
+              label: 'Paid',
+              value: String(filteredOrderStats.paid),
+              className: 'bg-green/10 text-green ring-green/25',
+            },
             {
               label: 'Processing',
               value: String(filteredOrderStats.processing),
-              tone: 'text-sky-300',
+              className: 'bg-sky-500/10 text-sky-300 ring-sky-400/25',
             },
             {
               label: 'Complete',
               value: String(filteredOrderStats.delivered),
-              tone: 'text-gold',
+              className: 'bg-gold/10 text-gold ring-gold/25',
             },
             {
               label: 'Cancelled',
               value: String(filteredOrderStats.cancelled),
-              tone: 'text-danger',
+              className: 'bg-danger/10 text-danger ring-danger/25',
             },
             {
               label: 'Revenue',
               value: formatGbp(filteredOrderStats.revenuePence),
-              tone: 'text-gold',
+              className: 'bg-gold/10 text-gold ring-gold/25',
             },
           ].map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-white/8 bg-[#12141a] px-3 py-2.5"
+              className={`rounded-xl px-3 py-2.5 ring-1 ring-inset ${stat.className}`}
             >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
-                {stat.label}
-              </p>
-              <p className={`mt-1 text-sm font-semibold ${stat.tone}`}>{stat.value}</p>
+              <div className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+                <p className="text-[10px] font-medium opacity-70">{stat.label}</p>
+              </div>
+              <p className="mt-1 text-sm font-semibold tabular-nums">{stat.value}</p>
             </div>
           ))}
         </div>

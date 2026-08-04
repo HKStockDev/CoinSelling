@@ -187,6 +187,7 @@ export function AdminSidebar({
   badges = {},
   adminName,
   adminEmail,
+  adminAvatarUrl,
 }: {
   tab: AdminTab;
   open: boolean;
@@ -196,10 +197,12 @@ export function AdminSidebar({
   badges?: Partial<Record<AdminTab, number>>;
   adminName?: string;
   adminEmail?: string;
+  adminAvatarUrl?: string | null;
 }) {
   const widthClass = collapsed ? 'lg:w-[72px]' : 'lg:w-[260px]';
   const displayName = adminName || 'Admin';
   const displayEmail = adminEmail || '';
+  const avatarInitial = (displayName || displayEmail || '?').trim().charAt(0).toUpperCase();
 
   return (
     <>
@@ -343,8 +346,17 @@ export function AdminSidebar({
             title={collapsed ? `${displayName} · Online` : undefined}
           >
             <div className="relative shrink-0">
-              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gold/20 text-xs font-semibold text-gold">
-                <Image src="/brand/favi.png" alt="" width={32} height={32} className="h-8 w-8 object-cover" />
+              <div
+                className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-xs font-semibold text-gold ${
+                  adminAvatarUrl ? 'bg-transparent' : 'bg-gold/20'
+                }`}
+              >
+                {adminAvatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={adminAvatarUrl} alt="" className="h-full w-full object-contain" />
+                ) : (
+                  avatarInitial
+                )}
               </div>
               <span
                 className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0b0c10] bg-green"

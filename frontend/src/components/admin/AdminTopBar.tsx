@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { AdminTab } from '@/lib/admin-dashboard';
@@ -25,6 +24,8 @@ const TITLES: Partial<Record<AdminTab, { title: string; subtitle: string }>> = {
 export function AdminTopBar({
   tab,
   adminName,
+  adminEmail,
+  adminAvatarUrl,
   search,
   onSearch,
   onMenu,
@@ -34,6 +35,8 @@ export function AdminTopBar({
 }: {
   tab: AdminTab;
   adminName: string;
+  adminEmail?: string;
+  adminAvatarUrl?: string | null;
   search: string;
   onSearch: (v: string) => void;
   onMenu: () => void;
@@ -196,8 +199,17 @@ export function AdminTopBar({
             aria-controls={menuId}
             className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-1 pl-1 pr-2 transition hover:border-white/20 hover:bg-white/[0.05] sm:pr-2.5"
           >
-            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gold/20 text-gold">
-              <Image src="/brand/favi.png" alt="" width={32} height={32} className="h-8 w-8 object-cover" />
+            <div
+              className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-xs font-semibold text-gold ${
+                adminAvatarUrl ? 'bg-transparent' : 'bg-gold/20'
+              }`}
+            >
+              {adminAvatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={adminAvatarUrl} alt="" className="h-full w-full object-contain" />
+              ) : (
+                (adminName || adminEmail || '?').trim().charAt(0).toUpperCase()
+              )}
             </div>
             <div className="hidden leading-tight sm:block">
               <p className="text-left text-sm font-semibold text-white">{adminName || 'Admin'}</p>

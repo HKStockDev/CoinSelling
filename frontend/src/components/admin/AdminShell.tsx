@@ -192,6 +192,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           badges={{ orders: orderStats.newCount }}
           adminName={user.fullName || user.email.split('@')[0] || 'Admin'}
           adminEmail={user.email}
+          adminAvatarUrl={user.avatarUrl}
         />
 
         <div
@@ -202,6 +203,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <AdminTopBar
             tab={tab}
             adminName={user.fullName || user.email.split('@')[0] || 'Admin'}
+            adminEmail={user.email}
+            adminAvatarUrl={user.avatarUrl}
             search={search}
             onSearch={setSearch}
             onMenu={() => setSidebarOpen(true)}

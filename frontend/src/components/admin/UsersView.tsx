@@ -534,7 +534,12 @@ export function UsersView() {
   }
 
   async function deleteUser(c: Customer) {
-    if (!user || c.id === user.id) return;
+    if (!user) return;
+    if (c.id === user.id) {
+      setConfirmDelete(null);
+      setError('You cannot delete your own account. Sign in as another admin first.');
+      return;
+    }
     setBusyId(c.id);
     setError(null);
     try {
@@ -673,14 +678,6 @@ export function UsersView() {
               <IconFilter />
               Filter
             </button>
-            <button
-              type="button"
-              onClick={() => toggleSort(sortKey)}
-              className="inline-flex h-7 items-center gap-1 rounded-md border border-white/12 px-2 text-[11px] font-semibold uppercase tracking-wide text-white/45 transition hover:border-white/25 hover:text-white/70"
-              title={`Sort ${sortDir === 'asc' ? 'descending' : 'ascending'}`}
-            >
-              Sort {sortDir === 'asc' ? '↑' : '↓'}
-            </button>
           </div>
         </div>
 
@@ -696,13 +693,6 @@ export function UsersView() {
           >
             <IconFilter />
             Filter
-          </button>
-          <button
-            type="button"
-            onClick={() => toggleSort(sortKey)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/12 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-white/55"
-          >
-            Sort {sortDir === 'asc' ? '↑' : '↓'}
           </button>
         </div>
 
@@ -757,18 +747,16 @@ export function UsersView() {
                   >
                     <IconEdit />
                   </button>
-                  {!isSelf ? (
-                    <button
-                      type="button"
-                      disabled={busyId === c.id}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-danger/35 text-danger transition hover:border-danger hover:bg-danger/10 disabled:opacity-50"
-                      onClick={() => setConfirmDelete(c)}
-                      aria-label={`Delete ${c.email}`}
-                      title="Delete"
-                    >
-                      <IconTrash />
-                    </button>
-                  ) : null}
+                  <button
+                    type="button"
+                    disabled={busyId === c.id}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-danger/35 text-danger transition hover:border-danger hover:bg-danger/10 disabled:opacity-50"
+                    onClick={() => setConfirmDelete(c)}
+                    aria-label={`Delete ${c.email}`}
+                    title="Delete"
+                  >
+                    <IconTrash />
+                  </button>
                 </div>
               </li>
             );

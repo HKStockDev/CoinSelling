@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { AdminTab } from '@/lib/admin-dashboard';
-import { formatGbp } from '@/lib/admin-dashboard';
 
 const TITLES: Partial<Record<AdminTab, { title: string; subtitle: string }>> = {
   dashboard: { title: 'Dashboard', subtitle: 'Store overview' },
@@ -31,7 +30,6 @@ export function AdminTopBar({
   onMenu,
   onLogout,
   notificationCount = 0,
-  orderStats,
 }: {
   tab: AdminTab;
   adminName: string;
@@ -42,16 +40,6 @@ export function AdminTopBar({
   onMenu: () => void;
   onLogout: () => void;
   notificationCount?: number;
-  orderStats?: {
-    total: number;
-    paid: number;
-    processing: number;
-    delivered: number;
-    cancelled: number;
-    refunded: number;
-    pending: number;
-    revenuePence: number;
-  } | null;
 }) {
   const meta = TITLES[tab] ?? { title: 'Admin', subtitle: '' };
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,60 +86,6 @@ export function AdminTopBar({
         </h1>
         <p className="hidden text-xs leading-tight text-white/45 sm:block">{meta.subtitle}</p>
       </div>
-
-      {tab === 'orders' && orderStats && (
-        <div className="hidden min-w-0 max-w-[42%] items-center gap-1.5 overflow-x-auto [scrollbar-width:none] xl:flex [&::-webkit-scrollbar]:hidden">
-          {[
-            {
-              label: 'Total',
-              value: String(orderStats.total),
-              className: 'bg-white/[0.05] text-white ring-white/12',
-            },
-            {
-              label: 'Paid',
-              value: String(orderStats.paid),
-              className: 'bg-green/10 text-green ring-green/25',
-            },
-            {
-              label: 'Processing',
-              value: String(orderStats.processing),
-              className: 'bg-sky-500/10 text-sky-300 ring-sky-400/25',
-            },
-            {
-              label: 'Complete',
-              value: String(orderStats.delivered),
-              className: 'bg-gold/10 text-gold ring-gold/25',
-            },
-            {
-              label: 'Cancelled',
-              value: String(orderStats.cancelled),
-              className: 'bg-danger/10 text-danger ring-danger/25',
-            },
-            {
-              label: 'Refunded',
-              value: String(orderStats.refunded),
-              className: 'bg-purple-500/10 text-purple-300 ring-purple-400/25',
-            },
-            {
-              label: 'Revenue',
-              value: formatGbp(orderStats.revenuePence),
-              className: 'bg-gold/10 text-gold ring-gold/25',
-            },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              title={`${stat.label}: ${stat.value}`}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 ring-inset ${stat.className}`}
-            >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
-              <span className="text-[11px] font-medium opacity-70">{stat.label}</span>
-              <span className="text-[11px] font-semibold tabular-nums leading-none">
-                {stat.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
 
       <div className="mx-2 hidden min-w-0 flex-1 items-center md:flex lg:mx-6">
         <label className="relative flex w-full max-w-xl items-center">

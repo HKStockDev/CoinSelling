@@ -50,18 +50,18 @@ function StatusPill({ tone, label }: { tone: 'paid' | 'pending' | 'cancelled'; l
 
 function ActivityIcon({ type }: { type: string }) {
   const styles: Record<string, string> = {
-    user: 'bg-white/[0.06] text-white/70',
-    order: 'bg-green/15 text-green',
-    product: 'bg-gold/15 text-gold',
-    system: 'bg-danger/15 text-danger',
+    user: 'bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-400/25',
+    order: 'bg-green/15 text-green ring-1 ring-inset ring-green/30',
+    product: 'bg-gold/15 text-gold ring-1 ring-inset ring-gold/30',
+    system: 'bg-blue-500/15 text-blue-300 ring-1 ring-inset ring-blue-400/25',
   };
   const common = {
-    width: 15,
-    height: 15,
+    width: 16,
+    height: 16,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.8,
+    strokeWidth: 1.75,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
   };
@@ -71,39 +71,43 @@ function ActivityIcon({ type }: { type: string }) {
     case 'user':
       icon = (
         <svg {...common}>
-          <circle cx="12" cy="8" r="3.5" />
-          <path d="M5 19a7 7 0 0 1 14 0" />
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="3.5" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a3.5 3.5 0 0 1 0 6.74" />
         </svg>
       );
       break;
     case 'order':
       icon = (
         <svg {...common}>
-          <path d="M6 7h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7Z" />
-          <path d="M9 7V5.5A3 3 0 0 1 12 2.5 3 3 0 0 1 15 5.5V7" />
+          <circle cx="9" cy="20" r="1.4" />
+          <circle cx="18" cy="20" r="1.4" />
+          <path d="M3 4h2l1.6 9.2a2 2 0 0 0 2 1.6h8.3a2 2 0 0 0 2-1.5L21 8H7" />
         </svg>
       );
       break;
     case 'product':
       icon = (
         <svg {...common}>
-          <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
-          <path d="M3 7.5V16.5L12 21l9-4.5V7.5" />
-          <path d="M12 12v9" />
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
         </svg>
       );
       break;
     default:
       icon = (
         <svg {...common}>
-          <path d="M21 12a8.5 8.5 0 0 1-11.8 7.8L4 21l1.3-4.4A8.5 8.5 0 1 1 21 12Z" />
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
       );
   }
 
   return (
     <span
-      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${styles[type] ?? styles.system}`}
+      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${styles[type] ?? styles.system}`}
     >
       {icon}
     </span>
@@ -285,42 +289,44 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="p-4 sm:p-5">
-          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
+      <div className="grid gap-4 lg:grid-cols-3 lg:items-stretch">
+        <Card className="flex h-[22.5rem] flex-col overflow-hidden p-4 sm:p-5">
+          <h2 className="shrink-0 font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Sales by platform
           </h2>
-          <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-            <PlatformDonut slices={data.salesByPlatform} className="h-40 w-40 shrink-0" />
-            <ul className="w-full min-w-0 space-y-3 text-sm">
-              {data.salesByPlatform.map((p) => (
-                <li key={p.platform} className="flex items-center gap-3">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
-                    style={{ background: p.color }}
-                    aria-hidden
-                  />
-                  <span className="min-w-0 flex-1 truncate text-white/70">{p.label}</span>
-                  <span className="shrink-0 tabular-nums text-white">
-                    {formatGbp(p.pence)}
-                  </span>
-                  <span className="w-10 shrink-0 text-right tabular-nums text-white/45">
-                    {p.pct}%
-                  </span>
-                </li>
-              ))}
-              {data.salesByPlatform.length === 0 && (
-                <li className="text-white/40">No paid sales in this period.</li>
-              )}
-            </ul>
+          <div className="admin-scroll mt-4 flex min-h-0 flex-1 items-center overflow-y-auto">
+            <div className="flex w-full flex-col items-center gap-5 sm:flex-row sm:items-center">
+              <PlatformDonut slices={data.salesByPlatform} className="h-40 w-40 shrink-0" />
+              <ul className="w-full min-w-0 space-y-3 text-sm">
+                {data.salesByPlatform.map((p) => (
+                  <li key={p.platform} className="flex items-center gap-3">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
+                      style={{ background: p.color }}
+                      aria-hidden
+                    />
+                    <span className="min-w-0 flex-1 truncate text-white/70">{p.label}</span>
+                    <span className="shrink-0 tabular-nums text-white">
+                      {formatGbp(p.pence)}
+                    </span>
+                    <span className="w-10 shrink-0 text-right tabular-nums text-white/45">
+                      {p.pct}%
+                    </span>
+                  </li>
+                ))}
+                {data.salesByPlatform.length === 0 && (
+                  <li className="text-white/40">No paid sales in this period.</li>
+                )}
+              </ul>
+            </div>
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-5">
-          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
+        <Card className="flex h-[22.5rem] flex-col overflow-hidden p-4 sm:p-5">
+          <h2 className="shrink-0 font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Best sellers
           </h2>
-          <ul className="mt-4 space-y-3">
+          <ul className="admin-scroll mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             {data.topProducts.length === 0 && (
               <li className="text-sm text-white/40">No product sales yet.</li>
             )}
@@ -350,11 +356,11 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
           </ul>
         </Card>
 
-        <Card className="p-4 sm:p-5">
-          <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
+        <Card className="flex h-[22.5rem] flex-col overflow-hidden p-4 sm:p-5">
+          <h2 className="shrink-0 font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Recent activity
           </h2>
-          <ul className="mt-4 space-y-3.5">
+          <ul className="admin-scroll mt-4 min-h-0 flex-1 space-y-3.5 overflow-y-auto pr-1">
             {data.activity.length === 0 && (
               <li className="text-sm text-white/40">No recent activity.</li>
             )}

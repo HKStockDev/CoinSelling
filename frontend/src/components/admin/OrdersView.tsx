@@ -191,12 +191,12 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
   return (
     <div className="space-y-4">
       {showStats && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:hidden">
+        <div className="flex flex-wrap items-center gap-2">
           {[
             {
               label: 'Total',
               value: String(filteredOrderStats.total),
-              className: 'bg-white/[0.04] text-white ring-white/12',
+              className: 'bg-white/[0.05] text-white ring-white/12',
             },
             {
               label: 'Paid',
@@ -231,13 +231,14 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
           ].map((stat) => (
             <div
               key={stat.label}
-              className={`rounded-xl px-3 py-2.5 ring-1 ring-inset ${stat.className}`}
+              title={`${stat.label}: ${stat.value}`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 ring-1 ring-inset ${stat.className}`}
             >
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
-                <p className="text-[11px] font-medium opacity-70">{stat.label}</p>
-              </div>
-              <p className="mt-1 text-sm font-semibold tabular-nums">{stat.value}</p>
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
+              <span className="text-[11px] font-medium opacity-70">{stat.label}</span>
+              <span className="text-[12px] font-semibold tabular-nums leading-none">
+                {stat.value}
+              </span>
             </div>
           ))}
         </div>

@@ -319,6 +319,9 @@ export function UsersView() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState<UserSortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   async function refreshCustomers() {
     if (!user) return;
@@ -451,10 +454,20 @@ export function UsersView() {
     setSortDir(key === 'buyStatus' ? 'desc' : 'asc');
   }
 
+  function resetAvatarState(url: string | null = null) {
+    setAvatarPreview((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return url;
+    });
+    setAvatarFile(null);
+    setAvatarBusy(false);
+  }
+
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setFormMode('create');
+    resetAvatarState(null);
     setError(null);
   }
 
@@ -468,6 +481,7 @@ export function UsersView() {
       role: c.role === 'admin' ? 'admin' : 'customer',
     });
     setFormMode('edit');
+    resetAvatarState(c.avatar_url);
     setError(null);
   }
 
@@ -476,6 +490,67 @@ export function UsersView() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setSaving(false);
+    resetAvatarState(null);
+  }
+
+  async function onAvatarSelected(file: File | null) {
+    if (!user || !file) return;
+    setError(null);
+
+    if (formMode === 'create') {
+      const preview = URL.createObjectURL(file);
+      setAvatarPreview((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return preview;
+      });
+      setAvatarFile(file);
+      return;
+    }
+
+    if (!editing) return;
+    setAvatarBusy(true);
+    try {
+      const updated = await api.adminUploadCustomerAvatar(
+        user.accessToken,
+        editing.id,
+        file,
+      );
+      setEditing(updated);
+      resetAvatarState(updated.avatar_url);
+      await refreshCustomers();
+      setMessage(`Avatar updated for ${updated.email}.`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function onRemoveAvatar() {
+    if (!user) return;
+    setError(null);
+
+    if (formMode === 'create') {
+      resetAvatarState(null);
+      return;
+    }
+
+    if (!editing) return;
+    setAvatarBusy(true);
+    try {
+      const updated = await api.adminRemoveCustomerAvatar(
+        user.accessToken,
+        editing.id,
+      );
+      setEditing(updated);
+      resetAvatarState(null);
+      await refreshCustomers();
+      setMessage(`Avatar removed for ${updated.email}.`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAvatarBusy(false);
+    }
   }
 
   async function submitForm(e: FormEvent) {
@@ -499,12 +574,19 @@ export function UsersView() {
     setError(null);
     try {
       if (formMode === 'create') {
-        await api.createCustomer(user.accessToken, {
+        const created = await api.createCustomer(user.accessToken, {
           email: form.email.trim(),
           password,
           fullName: form.fullName.trim() || undefined,
           role: form.role,
         });
+        if (avatarFile) {
+          await api.adminUploadCustomerAvatar(
+            user.accessToken,
+            created.id,
+            avatarFile,
+          );
+        }
         setMessage(`Created user ${form.email.trim()}.`);
       } else if (editing) {
         const payload: {
@@ -794,6 +876,77 @@ export function UsersView() {
               >
                 ×
               </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-white/8 bg-[#0b0c10] px-3 py-3">
+              <label className="relative cursor-pointer">
+                <span
+                  className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full text-base font-semibold text-gold ${
+                    avatarPreview ? 'bg-transparent' : 'bg-gold/15'
+                  }`}
+                >
+                  {avatarPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarPreview}
+                      alt=""
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    (form.fullName || form.email || '?').trim().charAt(0).toUpperCase() ||
+                    '?'
+                  )}
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-[#12141a] bg-[#12141a] text-[10px] text-white/70">
+                    {avatarBusy ? '…' : '✎'}
+                  </span>
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="sr-only"
+                  disabled={avatarBusy || saving}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    e.target.value = '';
+                    void onAvatarSelected(file);
+                  }}
+                />
+              </label>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white">Avatar</p>
+                <p className="mt-0.5 text-[11px] text-white/40">
+                  {formMode === 'create'
+                    ? 'Optional. Uploaded after the account is created.'
+                    : avatarPreview
+                      ? 'Click the pencil to replace this photo.'
+                      : 'Upload a JPG, PNG, WEBP, or GIF (max 2MB).'}
+                </p>
+              </div>
+              {avatarPreview ? (
+                <button
+                  type="button"
+                  disabled={avatarBusy || saving}
+                  onClick={() => void onRemoveAvatar()}
+                  className="shrink-0 text-xs font-semibold text-danger transition hover:text-danger/80 disabled:opacity-60"
+                >
+                  Remove
+                </button>
+              ) : (
+                <label className="shrink-0 cursor-pointer text-xs font-semibold text-gold transition hover:text-gold/80">
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="sr-only"
+                    disabled={avatarBusy || saving}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      e.target.value = '';
+                      void onAvatarSelected(file);
+                    }}
+                  />
+                </label>
+              )}
             </div>
 
             <label className="block text-xs text-white/50">

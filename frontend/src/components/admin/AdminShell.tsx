@@ -95,26 +95,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const orderStats = useMemo(() => computeOrderStats(orders), [orders]);
 
-  const filteredOrderStats = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q || tab !== 'orders') return orderStats;
-    const filtered = orders.filter((o) => {
-      const hay = [
-        o.order_number,
-        o.status,
-        o.platform,
-        o.guest_email,
-        o.profiles?.email,
-        o.profiles?.full_name,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-    return computeOrderStats(filtered);
-  }, [orders, search, tab, orderStats]);
-
   const ctx = useMemo<AdminShellContextValue>(
     () => ({
       search,
@@ -210,7 +190,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onMenu={() => setSidebarOpen(true)}
             onLogout={() => void signOut()}
             notificationCount={orderStats.newCount}
-            orderStats={tab === 'orders' ? filteredOrderStats : null}
           />
 
           <div className="admin-scroll min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6">

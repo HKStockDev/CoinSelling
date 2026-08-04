@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export function AdminToast({
   message,
@@ -15,6 +16,10 @@ export function AdminToast({
   onDismissError: () => void;
   durationMs?: number;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!message) return;
     const t = window.setTimeout(onDismissMessage, durationMs);
@@ -27,11 +32,11 @@ export function AdminToast({
     return () => window.clearTimeout(t);
   }, [error, durationMs, onDismissError]);
 
-  if (!message && !error) return null;
+  if (!mounted || (!message && !error)) return null;
 
-  return (
+  return createPortal(
     <div
-      className="admin-panel font-admin pointer-events-none fixed bottom-6 right-6 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2 antialiased"
+      className="admin-panel font-admin pointer-events-none fixed bottom-6 right-6 z-[9999] flex w-[min(100%-2rem,22rem)] flex-col gap-2 antialiased"
       aria-live="polite"
     >
       {message && (
@@ -75,6 +80,7 @@ export function AdminToast({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

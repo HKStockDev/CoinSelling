@@ -275,6 +275,52 @@ export const api = {
     });
   },
 
+  async adminUploadCustomerAvatar(_token: string, userId: string, file: File) {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      throw new Error('Use a JPG, PNG, WEBP, or GIF image.');
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error('Image must be 2MB or smaller.');
+    }
+
+    const prepared = await prepareAvatarPng(file);
+    const base = (process.env.NEXT_PUBLIC_API_URL ?? '/api').replace(/\/$/, '');
+    const form = new FormData();
+    form.append('file', prepared);
+
+    const res = await fetch(`${base}/admin/customers/${userId}/avatar`, {
+      method: 'POST',
+      body: form,
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message ?? `Request failed (${res.status})`);
+    }
+    return res.json() as Promise<{
+      id: string;
+      email: string;
+      full_name: string | null;
+      role: string;
+      avatar_url: string | null;
+      created_at: string;
+    }>;
+  },
+
+  async adminRemoveCustomerAvatar(_token: string, userId: string) {
+    return request<{
+      id: string;
+      email: string;
+      full_name: string | null;
+      role: string;
+      avatar_url: string | null;
+      created_at: string;
+    }>(`/admin/customers/${userId}/avatar`, {
+      method: 'DELETE',
+    });
+  },
+
   async adminDashboard(_token: string) {
     const { buildAdminDashboard } = await import('./admin-dashboard');
     const supabase = getSupabase();

@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect, useId, useRef, useState } from 'react';
 import { formatGbp, platformMeta } from '@/lib/admin-dashboard';
 
 export type AdminOrder = {
   id: string;
   order_number: string;
+  user_id?: string | null;
   status: string;
   total_gbp_pence: number;
   platform: string;
@@ -23,76 +25,13 @@ export type OrderSortKey =
   | 'date'
   | 'total';
 
-const STATUS_ACTIONS = [
-  {
-    status: 'paid',
-    label: 'Mark Paid',
-    className: 'text-green hover:bg-green/15 hover:border-green/40',
-    icon: 'paid',
-  },
-  {
-    status: 'processing',
-    label: 'Mark Processing',
-    className: 'text-sky-400 hover:bg-sky-400/15 hover:border-sky-400/40',
-    icon: 'processing',
-  },
-  {
-    status: 'delivered',
-    label: 'Mark Delivered',
-    className: 'text-gold hover:bg-gold/15 hover:border-gold/40',
-    icon: 'delivered',
-  },
-  {
-    status: 'cancelled',
-    label: 'Mark Cancelled',
-    className: 'text-danger hover:bg-danger/15 hover:border-danger/40',
-    icon: 'cancelled',
-  },
+/** Selectable statuses in the merged Status dropdown (DB value → UI label). */
+const STATUS_OPTIONS = [
+  { status: 'paid', label: 'Paid' },
+  { status: 'processing', label: 'Processing' },
+  { status: 'cancelled', label: 'Cancelled' },
+  { status: 'delivered', label: 'Complete' },
 ] as const;
-
-function StatusIcon({ name }: { name: string }) {
-  const common = {
-    width: 15,
-    height: 15,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
-  switch (name) {
-    case 'paid':
-      return (
-        <svg {...common}>
-          <path d="M20 6 9 17l-5-5" />
-        </svg>
-      );
-    case 'processing':
-      return (
-        <svg {...common}>
-          <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
-          <circle cx="12" cy="12" r="3.5" />
-        </svg>
-      );
-    case 'delivered':
-      return (
-        <svg {...common}>
-          <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-          <path d="M3.3 7 12 12l8.7-5M12 22V12" />
-        </svg>
-      );
-    case 'cancelled':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="m9 9 6 6M15 9l-6 6" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
 
 export function orderStatusStyle(status: string) {
   switch (status) {
@@ -113,7 +52,7 @@ export function orderStatusStyle(status: string) {
       };
     case 'delivered':
       return {
-        label: 'Delivered',
+        label: 'Complete',
         className: 'bg-gold/15 text-gold ring-gold/30',
       };
     case 'cancelled':
@@ -143,6 +82,98 @@ export function OrderStatusBadge({ status }: { status: string }) {
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
       {meta.label}
     </span>
+  );
+}
+
+function StatusDropdown({
+  status,
+  onSelect,
+}: {
+  status: string;
+  onSelect: (next: string) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const meta = orderStatusStyle(status);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative inline-block">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((v) => !v)}
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ring-1 ring-inset transition hover:brightness-110 ${meta.className}`}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+        {meta.label}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`opacity-70 transition ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="Order status"
+          className="absolute left-0 z-30 mt-1.5 min-w-[9.5rem] overflow-hidden rounded-lg border border-white/10 bg-[#1a1d24] py-1 shadow-xl"
+        >
+          {STATUS_OPTIONS.map((opt) => {
+            const active = status === opt.status;
+            const optMeta = orderStatusStyle(opt.status);
+            return (
+              <li key={opt.status} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  disabled={active}
+                  onClick={() => {
+                    setOpen(false);
+                    if (!active) void onSelect(opt.status);
+                  }}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition ${
+                    active
+                      ? 'cursor-default bg-white/8 text-white/40'
+                      : `${optMeta.className.split(' ').find((c) => c.startsWith('text-')) ?? 'text-white/80'} hover:bg-white/8`
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
+                  {opt.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -237,7 +268,7 @@ export function OrdersTable({
   return (
     <div className="animate-rise overflow-hidden rounded-xl border border-white/8 bg-[#12141a]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[820px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-white/8 bg-white/[0.02] text-[11px]">
               <SortHeader
@@ -268,9 +299,6 @@ export function OrdersTable({
                 sortDir={sortDir}
                 onSort={handleSort}
               />
-              <th className="px-4 py-3 font-semibold uppercase tracking-[0.12em] text-white/40">
-                Actions
-              </th>
               <SortHeader
                 label="Date"
                 column="date"
@@ -323,36 +351,10 @@ export function OrdersTable({
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
-                    <OrderStatusBadge status={order.status} />
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-[#0b0c10]/60 p-1">
-                      {STATUS_ACTIONS.map((action) => {
-                        const active = order.status === action.status;
-                        return (
-                          <button
-                            key={action.status}
-                            type="button"
-                            title={action.label}
-                            aria-label={action.label}
-                            disabled={active}
-                            onClick={() =>
-                              void onUpdateStatus(order.id, action.status)
-                            }
-                            className={`group relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent transition ${
-                              active
-                                ? 'cursor-default bg-white/8 text-white/35'
-                                : action.className
-                            }`}
-                          >
-                            <StatusIcon name={action.icon} />
-                            <span className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-20 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-[#1a1d24] px-2 py-1 text-[10px] font-medium text-white shadow-lg group-hover:block group-focus-visible:block">
-                              {action.label}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <StatusDropdown
+                      status={order.status}
+                      onSelect={(next) => onUpdateStatus(order.id, next)}
+                    />
                   </td>
                   <td className="px-4 py-3.5 text-xs text-white/45">
                     {formatWhen(order.created_at)}

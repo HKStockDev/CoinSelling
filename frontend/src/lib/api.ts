@@ -430,6 +430,7 @@ export const api = {
     return (data ?? []) as Array<{
       id: string;
       order_number: string;
+      user_id: string | null;
       status: string;
       total_gbp_pence: number;
       platform: string;

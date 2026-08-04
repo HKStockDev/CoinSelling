@@ -18,7 +18,7 @@ const STATUSES = [
   { id: 'pending_payment', label: 'Pending payment' },
   { id: 'paid', label: 'Paid' },
   { id: 'processing', label: 'Processing' },
-  { id: 'delivered', label: 'Delivered' },
+  { id: 'delivered', label: 'Complete' },
   { id: 'cancelled', label: 'Cancelled' },
   { id: 'refunded', label: 'Refunded' },
 ] as const;
@@ -205,7 +205,7 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
               tone: 'text-sky-300',
             },
             {
-              label: 'Delivered',
+              label: 'Complete',
               value: String(filteredOrderStats.delivered),
               tone: 'text-gold',
             },

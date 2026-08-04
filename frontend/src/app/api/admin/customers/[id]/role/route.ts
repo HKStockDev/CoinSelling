@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  let adminUser;
   try {
-    await requireAdmin();
+    adminUser = await requireAdmin();
   } catch (e) {
     const message = (e as Error).message;
     const status = message === 'Unauthorized' ? 401 : 403;
@@ -15,6 +16,13 @@ export async function PATCH(
   }
 
   const { id } = await context.params;
+  if (id === adminUser.id) {
+    return NextResponse.json(
+      { message: 'You cannot change your own role' },
+      { status: 400 },
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as { role?: string };
   if (body.role !== 'customer' && body.role !== 'admin') {
     return NextResponse.json(
@@ -24,8 +32,8 @@ export async function PATCH(
   }
 
   try {
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin
+    const supabase = await createServerSupabase();
+    const { data, error } = await supabase
       .from('profiles')
       .update({ role: body.role })
       .eq('id', id)

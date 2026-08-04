@@ -1,6 +1,13 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useAdminShell } from '@/components/admin/AdminShell';
@@ -8,6 +15,9 @@ import { formatCoins, PLATFORMS, type Platform, type Product } from '@/lib/site'
 
 const fieldClass =
   'mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-2 py-2 text-sm text-white outline-none focus:border-gold/40';
+
+const iconBtn =
+  'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition disabled:opacity-50';
 
 function productMatchesSearch(product: Product, q: string) {
   if (!q) return true;
@@ -66,6 +76,57 @@ function platformLabel(platform: Platform) {
   return PLATFORMS.find((p) => p.id === platform)?.label ?? platform;
 }
 
+function IconPlus() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+function IconSave() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+      <path d="M17 21v-8H7v8M7 3v5h8" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function ModalOverlay({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+      {children}
+    </div>,
+    document.body,
+  );
+}
+
+type ConfirmState =
+  | { kind: 'create' }
+  | { kind: 'save'; product: Product; form: HTMLFormElement }
+  | { kind: 'delete'; product: Product };
+
 export function ProductsView() {
   const { user } = useAuth();
   const { search, setMessage, setError } = useAdminShell();
@@ -73,8 +134,8 @@ export function ProductsView() {
   const [products, setProducts] = useState<Product[]>([]);
   const [fetching, setFetching] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
   const [newCoins, setNewCoins] = useState('100K');
   const [newName, setNewName] = useState('');
@@ -125,19 +186,48 @@ export function ProductsView() {
     setProducts(refreshed);
   }
 
-  async function savePrice(e: FormEvent<HTMLFormElement>, product: Product) {
+  function resetCreateForm() {
+    setNewCoins('100K');
+    setNewName('');
+    setNewSlug('');
+    setNewPrice('');
+    setNewCompare('');
+    setSlugTouched(false);
+    setNameTouched(false);
+  }
+
+  function requestOpenCreate() {
+    if (showCreate) {
+      setShowCreate(false);
+      return;
+    }
+    setConfirm({ kind: 'create' });
+  }
+
+  function onSaveSubmit(e: FormEvent<HTMLFormElement>, product: Product) {
     e.preventDefault();
+    setConfirm({ kind: 'save', product, form: e.currentTarget });
+  }
+
+  function onCreateSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setConfirm({ kind: 'create' });
+  }
+
+  async function runSave(product: Product, form: HTMLFormElement) {
     if (!user) return;
     setMessage(null);
     setError(null);
-    const form = new FormData(e.currentTarget);
-    const pounds = Number(form.get('price'));
-    const compare = form.get('compare');
-    const note = String(form.get('note') || 'Seasonal update');
+    const data = new FormData(form);
+    const pounds = Number(data.get('price'));
+    const compare = data.get('compare');
+    const note = String(data.get('note') || 'Seasonal update');
     if (!Number.isFinite(pounds) || pounds <= 0) {
       setError('Enter a valid GBP price');
+      setConfirm(null);
       return;
     }
+    setBusy(true);
     try {
       await api.updatePrice(user.accessToken, product.id, {
         priceGbpPence: Math.round(pounds * 100),
@@ -146,20 +236,29 @@ export function ProductsView() {
         note,
       });
       setMessage(`Updated ${product.name}`);
+      setConfirm(null);
       await refresh();
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setBusy(false);
     }
   }
 
-  async function createProduct(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function runCreate() {
     if (!user) return;
     setMessage(null);
     setError(null);
 
+    if (!showCreate) {
+      setShowCreate(true);
+      setConfirm(null);
+      return;
+    }
+
     if (!Number.isFinite(coinAmount) || coinAmount < 1000) {
       setError('Enter a valid coin amount (e.g. 100K or 1.5M)');
+      setConfirm(null);
       return;
     }
     const name = newName.trim();
@@ -167,10 +266,12 @@ export function ProductsView() {
     const pounds = Number(newPrice);
     if (!name || !slug) {
       setError('Name and slug are required');
+      setConfirm(null);
       return;
     }
     if (!Number.isFinite(pounds) || pounds <= 0) {
       setError('Enter a valid GBP price');
+      setConfirm(null);
       return;
     }
 
@@ -179,10 +280,11 @@ export function ProductsView() {
       compareRaw === '' ? null : Math.round(Number(compareRaw) * 100);
     if (compareRaw !== '' && (!Number.isFinite(Number(compareRaw)) || Number(compareRaw) <= 0)) {
       setError('Enter a valid compare-at price or leave it blank');
+      setConfirm(null);
       return;
     }
 
-    setCreating(true);
+    setBusy(true);
     try {
       const maxSort = products.reduce((m, p) => Math.max(m, p.sort_order ?? 0), 0);
       await api.createProduct(user.accessToken, {
@@ -199,38 +301,79 @@ export function ProductsView() {
       });
       setMessage(`Added ${name}`);
       setShowCreate(false);
-      setNewCoins('100K');
-      setNewName('');
-      setNewSlug('');
-      setNewPrice('');
-      setNewCompare('');
-      setSlugTouched(false);
-      setNameTouched(false);
+      resetCreateForm();
+      setConfirm(null);
       await refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setCreating(false);
+      setBusy(false);
     }
   }
 
-  async function deleteProduct(product: Product) {
+  async function runDelete(product: Product) {
     if (!user) return;
-    const ok = window.confirm(`Delete “${product.name}”? This cannot be undone.`);
-    if (!ok) return;
     setMessage(null);
     setError(null);
-    setDeletingId(product.id);
+    setBusy(true);
     try {
       await api.deleteProduct(user.accessToken, product.id);
       setMessage(`Deleted ${product.name}`);
+      setConfirm(null);
       await refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setDeletingId(null);
+      setBusy(false);
     }
   }
+
+  async function confirmAction() {
+    if (!confirm) return;
+    if (confirm.kind === 'create') {
+      await runCreate();
+      return;
+    }
+    if (confirm.kind === 'save') {
+      await runSave(confirm.product, confirm.form);
+      return;
+    }
+    await runDelete(confirm.product);
+  }
+
+  const confirmCopy = (() => {
+    if (!confirm) return null;
+    if (confirm.kind === 'create' && !showCreate) {
+      return {
+        title: 'Add a new product?',
+        body: `Open the form to create a new ${platformLabel(platform)} coin pack.`,
+        action: 'Continue',
+        danger: false,
+      };
+    }
+    if (confirm.kind === 'create') {
+      return {
+        title: 'Create this product?',
+        body: `Add “${newName.trim() || 'new product'}” (${newSlug.trim() || 'slug'}) for ${platformLabel(platform)}.`,
+        action: busy ? 'Creating…' : 'Create',
+        danger: false,
+      };
+    }
+    if (confirm.kind === 'save') {
+      return {
+        title: 'Save price changes?',
+        body: `Update pricing for “${confirm.product.name}”.`,
+        action: busy ? 'Saving…' : 'Save',
+        danger: false,
+      };
+    }
+    return {
+      title: 'Delete product?',
+      body: `This permanently removes “${confirm.product.name}”. Existing orders stay, but the product link will be cleared.`,
+      action: busy ? 'Deleting…' : 'Delete',
+      danger: true,
+    };
+  })();
 
   return (
     <div className="animate-rise space-y-5">
@@ -253,16 +396,18 @@ export function ProductsView() {
         </div>
         <button
           type="button"
-          onClick={() => setShowCreate((v) => !v)}
-          className="rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-black"
+          onClick={requestOpenCreate}
+          className={`${iconBtn} bg-gold text-black hover:brightness-110`}
+          aria-label={showCreate ? 'Close add product form' : 'Add product'}
+          title={showCreate ? 'Close' : 'Add product'}
         >
-          {showCreate ? 'Cancel' : 'Add product'}
+          {showCreate ? <IconClose /> : <IconPlus />}
         </button>
       </div>
 
       {showCreate && (
         <form
-          onSubmit={(e) => void createProduct(e)}
+          onSubmit={onCreateSubmit}
           className="space-y-3 rounded-xl border border-gold/25 bg-[#12141a] p-4"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -336,10 +481,12 @@ export function ProductsView() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={creating}
-              className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+              disabled={busy}
+              className={`${iconBtn} bg-gold text-black hover:brightness-110`}
+              aria-label="Create product"
+              title="Create product"
             >
-              {creating ? 'Adding…' : 'Create product'}
+              <IconPlus />
             </button>
           </div>
         </form>
@@ -358,7 +505,7 @@ export function ProductsView() {
           {filteredProducts.map((product) => (
             <form
               key={product.id}
-              onSubmit={(e) => void savePrice(e, product)}
+              onSubmit={(e) => onSaveSubmit(e, product)}
               className="grid gap-3 rounded-xl border border-white/8 bg-[#12141a] p-4 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] md:items-end"
             >
               <div>
@@ -402,23 +549,59 @@ export function ProductsView() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="rounded-lg bg-gold px-3 py-2 text-sm font-semibold text-black"
+                  disabled={busy}
+                  className={`${iconBtn} bg-gold text-black hover:brightness-110`}
+                  aria-label={`Save ${product.name}`}
+                  title="Save"
                 >
-                  Save
+                  <IconSave />
                 </button>
                 <button
                   type="button"
-                  onClick={() => void deleteProduct(product)}
-                  disabled={deletingId === product.id}
-                  className="rounded-lg border border-danger/40 px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger/10 disabled:opacity-50"
+                  disabled={busy}
+                  onClick={() => setConfirm({ kind: 'delete', product })}
+                  className={`${iconBtn} border border-danger/40 text-danger hover:bg-danger/10`}
+                  aria-label={`Delete ${product.name}`}
+                  title="Delete"
                 >
-                  {deletingId === product.id ? '…' : 'Delete'}
+                  <IconTrash />
                 </button>
               </div>
             </form>
           ))}
         </div>
       )}
+
+      {confirm && confirmCopy ? (
+        <ModalOverlay>
+          <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">{confirmCopy.title}</h2>
+            <p className="text-sm text-white/55">{confirmCopy.body}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirm(null)}
+                disabled={busy}
+                className="rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void confirmAction()}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide disabled:opacity-50 ${
+                  confirmCopy.danger
+                    ? 'bg-danger text-white'
+                    : 'bg-gold text-black'
+                }`}
+              >
+                {confirmCopy.action}
+              </button>
+            </div>
+          </div>
+        </ModalOverlay>
+      ) : null}
     </div>
   );
 }

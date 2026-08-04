@@ -12,12 +12,26 @@ type Customer = Awaited<ReturnType<typeof api.adminCustomers>>[number];
 
 type UserFormMode = 'create' | 'edit';
 
+type UserSortKey = 'name' | 'email' | 'role' | 'buyStatus';
+
 type UserFormState = {
   email: string;
   password: string;
   confirmPassword: string;
   fullName: string;
   role: 'customer' | 'admin';
+};
+
+type BuyInfo = {
+  orderCount: number;
+  latestStatus: string | null;
+  spentPence: number;
+  latestAt: number;
+};
+
+type Filters = {
+  role: '' | 'customer' | 'admin';
+  buyStatus: string;
 };
 
 const EMPTY_FORM: UserFormState = {
@@ -28,10 +42,29 @@ const EMPTY_FORM: UserFormState = {
   role: 'customer',
 };
 
+const EMPTY_FILTERS: Filters = {
+  role: '',
+  buyStatus: '',
+};
+
+const BUY_STATUS_OPTIONS = [
+  { id: '', label: 'All buy statuses' },
+  { id: 'none', label: 'No purchases' },
+  { id: 'pending_payment', label: 'Pending payment' },
+  { id: 'paid', label: 'Paid' },
+  { id: 'processing', label: 'Processing' },
+  { id: 'delivered', label: 'Complete' },
+  { id: 'cancelled', label: 'Cancelled' },
+  { id: 'refunded', label: 'Refunded' },
+] as const;
+
 const PAID_STATUSES = new Set(['paid', 'processing', 'delivered']);
 
 const ROW_GRID =
   'grid grid-cols-1 items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)_minmax(0,1.1fr)_auto] md:gap-4';
+
+const fieldClass =
+  'mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white';
 
 function IconPlus({ className }: { className?: string }) {
   return (
@@ -57,6 +90,14 @@ function IconTrash({ className }: { className?: string }) {
       <path d="M8 6V4h8v2" />
       <path d="M19 6l-1 14H6L5 6" />
       <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function IconFilter({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M4 5h16l-6 7v5l-4 2v-7Z" />
     </svg>
   );
 }
@@ -190,6 +231,83 @@ function ModalOverlay({ children }: { children: ReactNode }) {
   );
 }
 
+function SortHeaderButton({
+  label,
+  column,
+  sortKey,
+  sortDir,
+  onSort,
+  align = 'left',
+}: {
+  label: string;
+  column: UserSortKey;
+  sortKey: UserSortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (key: UserSortKey) => void;
+  align?: 'left' | 'right';
+}) {
+  const active = sortKey === column;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(column)}
+      className={`inline-flex items-center gap-1 font-semibold uppercase tracking-wide transition hover:text-white ${
+        align === 'right' ? 'ml-auto flex-row-reverse' : ''
+      } ${active ? 'text-gold' : 'text-white/35'}`}
+    >
+      {label}
+      <span className="inline-flex w-3 justify-center text-[10px]" aria-hidden>
+        {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+      </span>
+    </button>
+  );
+}
+
+function ConfirmModal({
+  title,
+  body,
+  confirmLabel,
+  confirmClassName,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  body: ReactNode;
+  confirmLabel: string;
+  confirmClassName: string;
+  busy?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <ModalOverlay>
+      <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl">
+        <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="text-sm text-white/55">{body}</div>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/60 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConfirm}
+            className={`rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide disabled:opacity-50 ${confirmClassName}`}
+          >
+            {busy ? '…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
 export function UsersView() {
   const { user } = useAuth();
   const { search, orders, setMessage, setError } = useAdminShell();
@@ -200,7 +318,13 @@ export function UsersView() {
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState<UserFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmAdd, setConfirmAdd] = useState(false);
+  const [confirmEdit, setConfirmEdit] = useState<Customer | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [sortKey, setSortKey] = useState<UserSortKey>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   async function refreshCustomers() {
     if (!user) return;
@@ -229,12 +353,6 @@ export function UsersView() {
   }, [user, setError]);
 
   const buyByUserId = useMemo(() => {
-    type BuyInfo = {
-      orderCount: number;
-      latestStatus: string | null;
-      spentPence: number;
-      latestAt: number;
-    };
     const byId = new Map<string, BuyInfo>();
     const byEmail = new Map<string, BuyInfo>();
 
@@ -266,7 +384,7 @@ export function UsersView() {
     return { byId, byEmail };
   }, [orders]);
 
-  function buyFor(c: Customer) {
+  function buyFor(c: Customer): BuyInfo | null {
     return (
       buyByUserId.byId.get(c.id) ??
       buyByUserId.byEmail.get(c.email.toLowerCase()) ??
@@ -274,11 +392,19 @@ export function UsersView() {
     );
   }
 
+  const hasActiveFilters = filters.role !== '' || filters.buyStatus !== '';
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter((c) => {
-      const buy = buyByUserId.byId.get(c.id) ?? buyByUserId.byEmail.get(c.email.toLowerCase());
+    const list = customers.filter((c) => {
+      const buy = buyFor(c);
+      if (filters.role && c.role !== filters.role) return false;
+      if (filters.buyStatus === 'none') {
+        if ((buy?.orderCount ?? 0) > 0) return false;
+      } else if (filters.buyStatus) {
+        if ((buy?.latestStatus ?? '') !== filters.buyStatus) return false;
+      }
+      if (!q) return true;
       const buyLabel = buy?.latestStatus ?? (buy?.orderCount ? '' : 'no purchases');
       return [c.email, c.full_name, c.role, buyLabel]
         .filter(Boolean)
@@ -286,16 +412,63 @@ export function UsersView() {
         .toLowerCase()
         .includes(q);
     });
-  }, [customers, search, buyByUserId]);
 
-  function openCreate() {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      const buyA = buyFor(a);
+      const buyB = buyFor(b);
+      let cmp = 0;
+      switch (sortKey) {
+        case 'email':
+          cmp = a.email.localeCompare(b.email);
+          break;
+        case 'role': {
+          cmp = a.role.localeCompare(b.role);
+          if (cmp === 0) {
+            const statusA = buyA?.latestStatus ?? '';
+            const statusB = buyB?.latestStatus ?? '';
+            cmp = statusA.localeCompare(statusB);
+          }
+          if (cmp === 0) cmp = (buyA?.spentPence ?? 0) - (buyB?.spentPence ?? 0);
+          break;
+        }
+        case 'buyStatus': {
+          const statusA = buyA?.latestStatus ?? (buyA?.orderCount ? 'zzz' : '');
+          const statusB = buyB?.latestStatus ?? (buyB?.orderCount ? 'zzz' : '');
+          cmp = statusA.localeCompare(statusB);
+          if (cmp === 0) cmp = (buyA?.spentPence ?? 0) - (buyB?.spentPence ?? 0);
+          break;
+        }
+        case 'name':
+        default:
+          cmp = (a.full_name || a.email).localeCompare(b.full_name || b.email);
+          break;
+      }
+      return cmp * dir;
+    });
+    // buyFor depends on buyByUserId; include maps via customers/orders path
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customers, search, buyByUserId, filters, sortKey, sortDir]);
+
+  function toggleSort(key: UserSortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(key === 'buyStatus' ? 'desc' : 'asc');
+  }
+
+  function beginCreate() {
+    setConfirmAdd(false);
     setEditing(null);
     setForm(EMPTY_FORM);
     setFormMode('create');
     setError(null);
   }
 
-  function openEdit(c: Customer) {
+  function beginEdit(c: Customer) {
+    setConfirmEdit(null);
     setEditing(c);
     setForm({
       email: c.email,
@@ -394,11 +567,13 @@ export function UsersView() {
     <div className="animate-rise space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-white/45">
-          {filtered.length} user{filtered.length === 1 ? '' : 's'}
+          {filtered.length}
+          {hasActiveFilters || search.trim() ? ` of ${customers.length}` : ''} user
+          {filtered.length === 1 ? '' : 's'}
         </p>
         <button
           type="button"
-          onClick={openCreate}
+          onClick={() => setConfirmAdd(true)}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gold text-black transition hover:bg-gold/90"
           aria-label="Add user"
           title="Add user"
@@ -407,15 +582,133 @@ export function UsersView() {
         </button>
       </div>
 
+      {filtersOpen ? (
+        <div className="rounded-xl border border-white/8 bg-[#12141a] p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/40">
+              Filters
+            </p>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={() => setFilters(EMPTY_FILTERS)}
+                className="text-xs font-medium text-gold hover:underline"
+              >
+                Clear filters
+              </button>
+            ) : null}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs text-white/50">
+              Role
+              <select
+                value={filters.role}
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    role: (e.target.value === 'admin' || e.target.value === 'customer'
+                      ? e.target.value
+                      : '') as Filters['role'],
+                  }))
+                }
+                className={fieldClass}
+              >
+                <option value="">All roles</option>
+                <option value="customer">Customer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+            <label className="text-xs text-white/50">
+              Buy status
+              <select
+                value={filters.buyStatus}
+                onChange={(e) => setFilters((f) => ({ ...f, buyStatus: e.target.value }))}
+                className={fieldClass}
+              >
+                {BUY_STATUS_OPTIONS.map((s) => (
+                  <option key={s.id || 'all'} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      ) : null}
+
       <div className="overflow-hidden rounded-xl border border-white/8 bg-[#12141a]">
         <div
-          className={`${ROW_GRID} hidden border-b border-white/6 text-[11px] font-semibold uppercase tracking-wide text-white/35 md:grid`}
+          className={`${ROW_GRID} hidden border-b border-white/6 bg-white/[0.02] text-[11px] md:grid`}
         >
-          <span>User</span>
-          <span>Email</span>
-          <span>Role / Buy status</span>
-          <span className="text-right">Actions</span>
+          <SortHeaderButton
+            label="User"
+            column="name"
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+          />
+          <SortHeaderButton
+            label="Email"
+            column="email"
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+          />
+          <SortHeaderButton
+            label="Role / Buy status"
+            column="role"
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+          />
+          <div className="flex items-center justify-end gap-1.5">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((o) => !o)}
+              className={`inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold uppercase tracking-wide transition ${
+                filtersOpen || hasActiveFilters
+                  ? 'border-gold/40 bg-gold/10 text-gold'
+                  : 'border-white/12 text-white/45 hover:border-white/25 hover:text-white/70'
+              }`}
+              aria-pressed={filtersOpen}
+              title="Toggle filters"
+            >
+              <IconFilter />
+              Filter
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleSort(sortKey)}
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-white/12 px-2 text-[10px] font-semibold uppercase tracking-wide text-white/45 transition hover:border-white/25 hover:text-white/70"
+              title={`Sort ${sortDir === 'asc' ? 'descending' : 'ascending'}`}
+            >
+              Sort {sortDir === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
         </div>
+
+        <div className="flex items-center justify-end gap-1.5 border-b border-white/6 px-4 py-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((o) => !o)}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold uppercase tracking-wide transition ${
+              filtersOpen || hasActiveFilters
+                ? 'border-gold/40 bg-gold/10 text-gold'
+                : 'border-white/12 text-white/55'
+            }`}
+          >
+            <IconFilter />
+            Filter
+          </button>
+          <button
+            type="button"
+            onClick={() => toggleSort(sortKey)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/12 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-white/55"
+          >
+            Sort {sortDir === 'asc' ? '↑' : '↓'}
+          </button>
+        </div>
+
         <ul className="divide-y divide-white/6">
           {filtered.map((c) => {
             const buy = buyFor(c);
@@ -458,7 +751,7 @@ export function UsersView() {
                     type="button"
                     disabled={busyId === c.id}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 text-white/70 transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                    onClick={() => openEdit(c)}
+                    onClick={() => setConfirmEdit(c)}
                     aria-label={`Edit ${c.email}`}
                     title="Edit"
                   >
@@ -520,7 +813,7 @@ export function UsersView() {
               <input
                 value={form.fullName}
                 onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white"
+                className={fieldClass}
                 placeholder="Jane Doe"
               />
             </label>
@@ -532,7 +825,7 @@ export function UsersView() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white"
+                className={fieldClass}
                 placeholder="user@example.com"
               />
             </label>
@@ -543,7 +836,7 @@ export function UsersView() {
               onChange={(password) => setForm((f) => ({ ...f, password }))}
               required={formMode === 'create'}
               placeholder={formMode === 'create' ? 'At least 6 characters' : 'Optional'}
-              autoComplete={formMode === 'create' ? 'new-password' : 'new-password'}
+              autoComplete="new-password"
             />
 
             <PasswordField
@@ -566,7 +859,7 @@ export function UsersView() {
                     role: e.target.value === 'admin' ? 'admin' : 'customer',
                   }))
                 }
-                className="mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white disabled:opacity-50"
+                className={`${fieldClass} disabled:opacity-50`}
               >
                 <option value="customer">Customer</option>
                 <option value="admin">Admin</option>
@@ -593,34 +886,52 @@ export function UsersView() {
         </ModalOverlay>
       ) : null}
 
+      {confirmAdd ? (
+        <ConfirmModal
+          title="Add user?"
+          body="Open the form to create a new customer or admin account."
+          confirmLabel="Continue"
+          confirmClassName="bg-gold text-black"
+          onCancel={() => setConfirmAdd(false)}
+          onConfirm={beginCreate}
+        />
+      ) : null}
+
+      {confirmEdit ? (
+        <ConfirmModal
+          title="Edit user?"
+          body={
+            <>
+              Open the editor for{' '}
+              <span className="font-medium text-white">
+                {confirmEdit.full_name || confirmEdit.email}
+              </span>
+              .
+            </>
+          }
+          confirmLabel="Continue"
+          confirmClassName="bg-gold text-black"
+          onCancel={() => setConfirmEdit(null)}
+          onConfirm={() => beginEdit(confirmEdit)}
+        />
+      ) : null}
+
       {confirmDelete ? (
-        <ModalOverlay>
-          <div className="w-full max-w-sm space-y-4 rounded-xl border border-white/10 bg-[#12141a] p-5 shadow-2xl">
-            <h2 className="text-lg font-semibold text-white">Delete user?</h2>
-            <p className="text-sm text-white/55">
+        <ConfirmModal
+          title="Delete user?"
+          body={
+            <>
               This permanently removes{' '}
               <span className="font-medium text-white">{confirmDelete.email}</span> and
               their login. Existing orders stay in the system but will be unlinked.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(null)}
-                className="rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={busyId === confirmDelete.id}
-                onClick={() => void deleteUser(confirmDelete)}
-                className="rounded-lg bg-danger px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50"
-              >
-                {busyId === confirmDelete.id ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </ModalOverlay>
+            </>
+          }
+          confirmLabel={busyId === confirmDelete.id ? 'Deleting…' : 'Delete'}
+          confirmClassName="bg-danger text-white"
+          busy={busyId === confirmDelete.id}
+          onCancel={() => setConfirmDelete(null)}
+          onConfirm={() => void deleteUser(confirmDelete)}
+        />
       ) : null}
     </div>
   );

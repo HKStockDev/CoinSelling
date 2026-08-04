@@ -61,7 +61,7 @@ const BUY_STATUS_OPTIONS = [
 const PAID_STATUSES = new Set(['paid', 'processing', 'delivered']);
 
 const ROW_GRID =
-  'grid grid-cols-1 items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1.35fr)_minmax(0,1.1fr)_auto] md:gap-4';
+  'grid grid-cols-1 items-center gap-3 px-4 py-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.25fr)_6.5rem_minmax(0,1fr)_auto] md:gap-x-4 md:gap-y-3';
 
 const fieldClass =
   'mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 py-2 text-sm text-white';
@@ -158,14 +158,16 @@ function BuyStatus({
 }) {
   if (orderCount === 0) {
     return (
-      <span className="inline-flex w-fit items-center rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-white/40 ring-1 ring-inset ring-white/10">
-        No purchases
-      </span>
+      <div className="text-left">
+        <span className="inline-flex items-center rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-white/40 ring-1 ring-inset ring-white/10">
+          No purchases
+        </span>
+      </div>
     );
   }
 
   return (
-    <div className="min-w-0 space-y-1">
+    <div className="min-w-0 space-y-1 text-left">
       {latestStatus ? <OrderStatusBadge status={latestStatus} /> : null}
       <p className="text-[11px] text-white/40">
         {orderCount} order{orderCount === 1 ? '' : 's'}
@@ -655,8 +657,15 @@ export function UsersView() {
             onSort={toggleSort}
           />
           <SortHeaderButton
-            label="Role / Buy status"
+            label="Role"
             column="role"
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={toggleSort}
+          />
+          <SortHeaderButton
+            label="Buy status"
+            column="buyStatus"
             sortKey={sortKey}
             sortDir={sortDir}
             onSort={toggleSort}
@@ -715,7 +724,7 @@ export function UsersView() {
             const isSelf = c.id === user?.id;
             return (
               <li key={c.id} className={ROW_GRID}>
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3 text-left">
                   <Avatar name={c.full_name} email={c.email} url={c.avatar_url} />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-white">
@@ -727,11 +736,11 @@ export function UsersView() {
                   </div>
                 </div>
 
-                <p className="min-w-0 truncate text-sm text-white/50">{c.email}</p>
+                <p className="min-w-0 truncate text-left text-sm text-white/50">{c.email}</p>
 
-                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:flex-col md:items-start lg:flex-row lg:items-center">
+                <div className="flex justify-start text-left">
                   <span
-                    className={`inline-flex w-fit shrink-0 items-center rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                    className={`inline-flex items-center justify-center rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                       c.role === 'admin'
                         ? 'bg-white/10 text-white'
                         : 'bg-white/[0.04] text-white/45'
@@ -739,6 +748,9 @@ export function UsersView() {
                   >
                     {c.role}
                   </span>
+                </div>
+
+                <div className="min-w-0 justify-self-start text-left">
                   <BuyStatus
                     orderCount={buy?.orderCount ?? 0}
                     latestStatus={buy?.latestStatus ?? null}

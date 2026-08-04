@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useAdminShell } from '@/components/admin/AdminShell';
 import { formatCoins, PLATFORMS, type Platform, type Product } from '@/lib/site';
+import { platformMeta } from '@/lib/admin-dashboard';
 
 const fieldClass =
   'mt-1 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-2 py-2 text-sm text-white outline-none focus:border-gold/40';
@@ -115,7 +116,7 @@ function ModalOverlay({ children }: { children: ReactNode }) {
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+    <div className="admin-panel font-admin fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 antialiased">
       {children}
     </div>,
     document.body,
@@ -197,11 +198,7 @@ export function ProductsView() {
   }
 
   function requestOpenCreate() {
-    if (showCreate) {
-      setShowCreate(false);
-      return;
-    }
-    setConfirm({ kind: 'create' });
+    setShowCreate((v) => !v);
   }
 
   function onSaveSubmit(e: FormEvent<HTMLFormElement>, product: Product) {
@@ -249,12 +246,6 @@ export function ProductsView() {
     if (!user) return;
     setMessage(null);
     setError(null);
-
-    if (!showCreate) {
-      setShowCreate(true);
-      setConfirm(null);
-      return;
-    }
 
     if (!Number.isFinite(coinAmount) || coinAmount < 1000) {
       setError('Enter a valid coin amount (e.g. 100K or 1.5M)');
@@ -343,14 +334,6 @@ export function ProductsView() {
 
   const confirmCopy = (() => {
     if (!confirm) return null;
-    if (confirm.kind === 'create' && !showCreate) {
-      return {
-        title: 'Add a new product?',
-        body: `Open the form to create a new ${platformLabel(platform)} coin pack.`,
-        action: 'Continue',
-        danger: false,
-      };
-    }
     if (confirm.kind === 'create') {
       return {
         title: 'Create this product?',
@@ -379,20 +362,33 @@ export function ProductsView() {
     <div className="animate-rise space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          {PLATFORMS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setPlatform(p.id)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-                platform === p.id
-                  ? 'bg-gold font-semibold text-black'
-                  : 'border border-white/10 text-white/70 hover:border-gold/40'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
+          {PLATFORMS.map((p) => {
+            const meta = platformMeta(p.id);
+            const active = platform === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlatform(p.id)}
+                title={p.label}
+                aria-label={p.label}
+                aria-pressed={active}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg transition ${
+                  active
+                    ? 'bg-gold text-black shadow-[0_0_0_1px_rgba(212,175,55,0.55)]'
+                    : 'border border-white/10 text-white/70 hover:border-gold/40 hover:bg-white/5'
+                }`}
+              >
+                <img
+                  src={meta.icon}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className={`h-[22px] w-[22px] object-contain ${active ? '' : 'opacity-80'}`}
+                />
+              </button>
+            );
+          })}
         </div>
         <button
           type="button"

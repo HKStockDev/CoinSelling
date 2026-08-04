@@ -172,11 +172,36 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.admin-panel input,
-.admin-panel button,
-.admin-panel select,
-.admin-panel textarea {
+.admin-panel :where(
+  input,
+  button,
+  select,
+  textarea,
+  kbd,
+  code,
+  option,
+  label,
+  th,
+  td,
+  a,
+  p,
+  span,
+  h1,
+  h2,
+  h3,
+  h4,
+  li,
+  small
+) {
   font-family: inherit;
+  font-feature-settings: inherit;
+}
+
+/* Recharts / SVG labels inside admin */
+.admin-panel .recharts-text,
+.admin-panel .recharts-cartesian-axis-tick-value,
+.admin-panel text {
+  font-family: var(--fa) !important;
 }
 
 /* Hide default number input spinners */

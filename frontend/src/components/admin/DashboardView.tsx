@@ -49,17 +49,63 @@ function StatusPill({ tone, label }: { tone: 'paid' | 'pending' | 'cancelled'; l
 }
 
 function ActivityIcon({ type }: { type: string }) {
-  const colors: Record<string, string> = {
-    user: 'bg-violet-500/20 text-violet-300',
-    order: 'bg-green/20 text-green',
-    product: 'bg-gold/20 text-gold',
-    system: 'bg-blue-500/20 text-blue-300',
+  const styles: Record<string, string> = {
+    user: 'bg-white/[0.06] text-white/70',
+    order: 'bg-green/15 text-green',
+    product: 'bg-gold/15 text-gold',
+    system: 'bg-danger/15 text-danger',
   };
+  const common = {
+    width: 15,
+    height: 15,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+
+  let icon: React.ReactNode;
+  switch (type) {
+    case 'user':
+      icon = (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 19a7 7 0 0 1 14 0" />
+        </svg>
+      );
+      break;
+    case 'order':
+      icon = (
+        <svg {...common}>
+          <path d="M6 7h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7Z" />
+          <path d="M9 7V5.5A3 3 0 0 1 12 2.5 3 3 0 0 1 15 5.5V7" />
+        </svg>
+      );
+      break;
+    case 'product':
+      icon = (
+        <svg {...common}>
+          <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
+          <path d="M3 7.5V16.5L12 21l9-4.5V7.5" />
+          <path d="M12 12v9" />
+        </svg>
+      );
+      break;
+    default:
+      icon = (
+        <svg {...common}>
+          <path d="M21 12a8.5 8.5 0 0 1-11.8 7.8L4 21l1.3-4.4A8.5 8.5 0 1 1 21 12Z" />
+        </svg>
+      );
+  }
+
   return (
     <span
-      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${colors[type] ?? colors.system}`}
+      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${styles[type] ?? styles.system}`}
     >
-      <span className="h-2 w-2 rounded-full bg-current" />
+      {icon}
     </span>
   );
 }
@@ -148,12 +194,21 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
           </Card>
         </div>
 
-        <Card className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-white/70 xl:w-56">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-            <rect x="3" y="5" width="18" height="16" rx="2" />
-            <path d="M3 10h18M8 3v4M16 3v4" />
-          </svg>
-          <span className="text-center text-xs sm:text-sm">{data.period.label}</span>
+        <Card className="flex flex-col justify-between p-4 xl:w-56">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              Period
+            </p>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/70">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" />
+              </svg>
+            </span>
+          </div>
+          <p className="mt-3 text-sm font-medium leading-snug text-white/80 sm:text-[15px]">
+            {data.period.label}
+          </p>
         </Card>
       </div>
 
@@ -235,18 +290,22 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
           <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Sales by platform
           </h2>
-          <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <PlatformDonut slices={data.salesByPlatform} />
-            <ul className="w-full space-y-2.5 text-sm">
+          <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+            <PlatformDonut slices={data.salesByPlatform} className="h-40 w-40 shrink-0" />
+            <ul className="w-full min-w-0 space-y-3 text-sm">
               {data.salesByPlatform.map((p) => (
-                <li key={p.platform} className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-white/70">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
-                    {p.label}
+                <li key={p.platform} className="flex items-center gap-3">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
+                    style={{ background: p.color }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 truncate text-white/70">{p.label}</span>
+                  <span className="shrink-0 tabular-nums text-white">
+                    {formatGbp(p.pence)}
                   </span>
-                  <span className="text-right">
-                    <span className="block text-white">{formatGbp(p.pence)}</span>
-                    <span className="text-[11px] text-white/40">{p.pct}%</span>
+                  <span className="w-10 shrink-0 text-right tabular-nums text-white/45">
+                    {p.pct}%
                   </span>
                 </li>
               ))}
@@ -295,17 +354,20 @@ export function DashboardView({ data }: { data: AdminDashboardData }) {
           <h2 className="font-semibold text-sm uppercase tracking-[0.08em] text-white">
             Recent activity
           </h2>
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-4 space-y-3.5">
             {data.activity.length === 0 && (
               <li className="text-sm text-white/40">No recent activity.</li>
             )}
             {data.activity.map((item) => (
-              <li key={item.id} className="flex gap-3">
+              <li key={item.id} className="flex items-start gap-3">
                 <ActivityIcon type={item.type} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-white/85">{item.title}</p>
-                  <p className="text-[11px] text-white/40">{item.timeAgo}</p>
+                  <p className="truncate text-sm font-medium text-white">{item.title}</p>
+                  {item.detail ? (
+                    <p className="truncate text-xs text-white/45">{item.detail}</p>
+                  ) : null}
                 </div>
+                <span className="shrink-0 pt-0.5 text-[11px] text-white/40">{item.timeAgo}</span>
               </li>
             ))}
           </ul>

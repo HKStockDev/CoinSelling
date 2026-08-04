@@ -147,7 +147,7 @@ export function SalesOrdersChart({
           />
           <XAxis
             dataKey="label"
-            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tick={{ fill: '#6b7585', fontSize: 11, fontFamily: 'var(--fa)' }}
             tickLine={false}
             axisLine={false}
             minTickGap={28}
@@ -156,7 +156,7 @@ export function SalesOrdersChart({
           <YAxis
             yAxisId="sales"
             orientation="left"
-            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tick={{ fill: '#6b7585', fontSize: 11, fontFamily: 'var(--fa)' }}
             tickLine={false}
             axisLine={false}
             width={48}
@@ -165,7 +165,7 @@ export function SalesOrdersChart({
           <YAxis
             yAxisId="orders"
             orientation="right"
-            tick={{ fill: '#6b7585', fontSize: 11 }}
+            tick={{ fill: '#6b7585', fontSize: 11, fontFamily: 'var(--fa)' }}
             tickLine={false}
             axisLine={false}
             width={32}
@@ -218,7 +218,7 @@ export function PlatformDonut({
   const total = slices.reduce((s, x) => s + x.pct, 0) || 1;
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className={className}>
+    <svg viewBox={`0 0 ${size} ${size}`} className={className} aria-hidden>
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -247,19 +247,6 @@ export function PlatformDonut({
         offset += len;
         return el;
       })}
-      <text
-        x={size / 2}
-        y={size / 2 - 4}
-        textAnchor="middle"
-        fill="#fff"
-        fontSize="18"
-        fontWeight="700"
-      >
-        {slices[0] ? `${slices[0].pct}%` : '—'}
-      </text>
-      <text x={size / 2} y={size / 2 + 14} textAnchor="middle" fill="#6b7585" fontSize="10">
-        {slices[0]?.label ?? 'N/A'}
-      </text>
     </svg>
   );
 }

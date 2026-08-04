@@ -9,18 +9,14 @@ import { useAdminShell } from '@/components/admin/AdminShell';
 import {
   OrdersTable,
   computeOrderStats,
+  ADMIN_ORDER_STATUSES,
   type AdminOrder,
   type OrderSortKey,
 } from '@/components/admin/OrdersTable';
 
 const STATUSES = [
   { id: '', label: 'All statuses' },
-  { id: 'pending_payment', label: 'Pending payment' },
-  { id: 'paid', label: 'Paid' },
-  { id: 'processing', label: 'Processing' },
-  { id: 'delivered', label: 'Complete' },
-  { id: 'cancelled', label: 'Cancelled' },
-  { id: 'refunded', label: 'Refunded' },
+  ...ADMIN_ORDER_STATUSES.map((s) => ({ id: s.status, label: s.label })),
 ] as const;
 
 type Filters = {
@@ -223,6 +219,11 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
               className: 'bg-danger/10 text-danger ring-danger/25',
             },
             {
+              label: 'Refunded',
+              value: String(filteredOrderStats.refunded),
+              className: 'bg-purple-500/10 text-purple-300 ring-purple-400/25',
+            },
+            {
               label: 'Revenue',
               value: formatGbp(filteredOrderStats.revenuePence),
               className: 'bg-gold/10 text-gold ring-gold/25',
@@ -234,7 +235,7 @@ export function OrdersView({ showStats = true }: { showStats?: boolean }) {
             >
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
-                <p className="text-[10px] font-medium opacity-70">{stat.label}</p>
+                <p className="text-[11px] font-medium opacity-70">{stat.label}</p>
               </div>
               <p className="mt-1 text-sm font-semibold tabular-nums">{stat.value}</p>
             </div>

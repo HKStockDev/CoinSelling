@@ -133,7 +133,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] font-admin text-sm text-white/60">
+      <div className="admin-panel flex min-h-screen items-center justify-center bg-[#0b0c10] font-admin text-sm text-white/60 antialiased">
         Loading admin…
       </div>
     );
@@ -141,7 +141,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin">
+      <div className="admin-panel flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin antialiased">
         <div className="max-w-md text-center">
           <Image
             src="/brand/logo-png.png"
@@ -165,7 +165,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (user.role !== 'admin') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin">
+      <div className="admin-panel flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 font-admin antialiased">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-white">Access denied</h1>
           <p className="mt-2 text-sm text-white/55">

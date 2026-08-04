@@ -84,6 +84,7 @@ export interface ActivityItem {
   id: string;
   type: 'user' | 'order' | 'product' | 'system';
   title: string;
+  detail?: string | null;
   timeAgo: string;
   createdAt: string;
 }
@@ -355,7 +356,8 @@ export function buildAdminDashboard(input: {
     activity.push({
       id: `user-${c.id}`,
       type: 'user',
-      title: `New user registered · ${c.full_name || c.email}`,
+      title: 'New user registered',
+      detail: c.full_name || c.email,
       timeAgo: timeAgo(c.created_at),
       createdAt: c.created_at,
     });
@@ -364,7 +366,8 @@ export function buildAdminDashboard(input: {
     activity.push({
       id: `order-${o.id}`,
       type: 'order',
-      title: `Order ${o.orderNumber} · ${o.statusLabel}`,
+      title: `Order ${o.orderNumber}`,
+      detail: o.statusLabel,
       timeAgo: o.timeAgo,
       createdAt: o.createdAt,
     });
@@ -373,7 +376,8 @@ export function buildAdminDashboard(input: {
     activity.push({
       id: `price-${ph.id}`,
       type: 'product',
-      title: `Product updated · ${ph.products?.name ?? 'Price change'}`,
+      title: 'Product updated',
+      detail: ph.products?.name ?? 'Price change',
       timeAgo: timeAgo(ph.created_at),
       createdAt: ph.created_at,
     });

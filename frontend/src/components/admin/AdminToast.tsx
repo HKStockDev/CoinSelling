@@ -31,7 +31,7 @@ export function AdminToast({
 
   return (
     <div
-      className="pointer-events-none fixed bottom-6 right-6 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2"
+      className="admin-panel font-admin pointer-events-none fixed bottom-6 right-6 z-[100] flex w-[min(100%-2rem,22rem)] flex-col gap-2 antialiased"
       aria-live="polite"
     >
       {message && (

@@ -48,6 +48,7 @@ export function AdminTopBar({
     processing: number;
     delivered: number;
     cancelled: number;
+    refunded: number;
     pending: number;
     revenuePence: number;
   } | null;
@@ -127,6 +128,11 @@ export function AdminTopBar({
               className: 'bg-danger/10 text-danger ring-danger/25',
             },
             {
+              label: 'Refunded',
+              value: String(orderStats.refunded),
+              className: 'bg-purple-500/10 text-purple-300 ring-purple-400/25',
+            },
+            {
               label: 'Revenue',
               value: formatGbp(orderStats.revenuePence),
               className: 'bg-gold/10 text-gold ring-gold/25',
@@ -138,7 +144,7 @@ export function AdminTopBar({
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 ring-inset ${stat.className}`}
             >
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
-              <span className="text-[10px] font-medium opacity-70">{stat.label}</span>
+              <span className="text-[11px] font-medium opacity-70">{stat.label}</span>
               <span className="text-[11px] font-semibold tabular-nums leading-none">
                 {stat.value}
               </span>
@@ -167,7 +173,7 @@ export function AdminTopBar({
             placeholder="Search products, prices, users, orders…"
             className="w-full rounded-full border border-white/10 bg-[#14161c] py-2 pl-10 pr-16 text-sm text-white outline-none placeholder:text-white/35 focus:border-gold/40"
           />
-          <kbd className="pointer-events-none absolute right-3 hidden rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-white/40 sm:inline">
+          <kbd className="pointer-events-none absolute right-3 hidden rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[11px] text-white/40 sm:inline">
             CTRL + K
           </kbd>
         </label>
@@ -184,7 +190,7 @@ export function AdminTopBar({
             <path d="M10 19a2 2 0 0 0 4 0" />
           </svg>
           {notificationCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
               {notificationCount > 99 ? '99+' : notificationCount}
             </span>
           )}

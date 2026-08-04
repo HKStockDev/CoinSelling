@@ -25,13 +25,17 @@ export type OrderSortKey =
   | 'date'
   | 'total';
 
-/** Selectable statuses in the merged Status dropdown (DB value → UI label). */
-const STATUS_OPTIONS = [
+/** Admin-facing order statuses (DB value → UI label). */
+export const ADMIN_ORDER_STATUSES = [
   { status: 'paid', label: 'Paid' },
   { status: 'processing', label: 'Processing' },
-  { status: 'cancelled', label: 'Cancelled' },
   { status: 'delivered', label: 'Complete' },
+  { status: 'cancelled', label: 'Cancelled' },
+  { status: 'refunded', label: 'Refunded' },
 ] as const;
+
+/** Selectable statuses in the Status dropdown. */
+const STATUS_OPTIONS = ADMIN_ORDER_STATUSES;
 
 export function orderStatusStyle(status: string) {
   switch (status) {
@@ -187,11 +191,12 @@ export function computeOrderStats(orders: AdminOrder[]) {
     paid: count('paid'),
     processing: count('processing'),
     delivered: count('delivered'),
-    cancelled: count('cancelled') + count('refunded'),
+    cancelled: count('cancelled'),
+    refunded: count('refunded'),
     pending: count('pending_payment'),
     revenuePence: revenue,
     /** New / unread work queue */
-    newCount: count('paid') + count('pending_payment'),
+    newCount: count('paid') + count('processing'),
   };
 }
 
@@ -234,7 +239,7 @@ function SortHeader({
         } ${active ? 'text-gold' : 'text-white/40'}`}
       >
         {label}
-        <span className="inline-flex w-3 justify-center text-[10px]" aria-hidden>
+        <span className="inline-flex w-3 justify-center text-[11px]" aria-hidden>
           {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
         </span>
       </button>

@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { formatGbp } from '@/lib/admin-dashboard';
 import { useAdminShell } from '@/components/admin/AdminShell';
-import { OrderStatusBadge } from '@/components/admin/OrdersTable';
+import { OrderStatusBadge, ADMIN_ORDER_STATUSES } from '@/components/admin/OrdersTable';
 
 type Customer = Awaited<ReturnType<typeof api.adminCustomers>>[number];
 
@@ -49,13 +49,7 @@ const EMPTY_FILTERS: Filters = {
 
 const BUY_STATUS_OPTIONS = [
   { id: '', label: 'All buy statuses' },
-  { id: 'none', label: 'No purchases' },
-  { id: 'pending_payment', label: 'Pending payment' },
-  { id: 'paid', label: 'Paid' },
-  { id: 'processing', label: 'Processing' },
-  { id: 'delivered', label: 'Complete' },
-  { id: 'cancelled', label: 'Cancelled' },
-  { id: 'refunded', label: 'Refunded' },
+  ...ADMIN_ORDER_STATUSES.map((s) => ({ id: s.status, label: s.label })),
 ] as const;
 
 const PAID_STATUSES = new Set(['paid', 'processing', 'delivered']);
@@ -399,9 +393,7 @@ export function UsersView() {
     const list = customers.filter((c) => {
       const buy = buyFor(c);
       if (filters.role && c.role !== filters.role) return false;
-      if (filters.buyStatus === 'none') {
-        if ((buy?.orderCount ?? 0) > 0) return false;
-      } else if (filters.buyStatus) {
+      if (filters.buyStatus) {
         if ((buy?.latestStatus ?? '') !== filters.buyStatus) return false;
       }
       if (!q) return true;

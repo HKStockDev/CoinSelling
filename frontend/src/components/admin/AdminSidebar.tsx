@@ -166,7 +166,7 @@ function NavLink({
         </span>
         {!collapsed && <span className="flex-1 truncate text-left">{item.label}</span>}
         {!collapsed && badge != null && badge > 0 && (
-          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
             {badge > 99 ? '99+' : badge}
           </span>
         )}
@@ -272,7 +272,7 @@ export function AdminSidebar({
 
         <nav className="admin-scroll min-h-0 flex-1 overflow-y-auto px-2 py-4">
           {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
               Main menu
             </p>
           )}
@@ -291,7 +291,7 @@ export function AdminSidebar({
 
           {/* Tools
           {!collapsed && (
-            <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+            <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
               Tools
             </p>
           )}
@@ -310,7 +310,7 @@ export function AdminSidebar({
           */}
 
           {!collapsed && (
-            <p className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+            <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
               Store
             </p>
           )}

@@ -39,8 +39,9 @@ export const metadata: Metadata = {
     'FutCoins Empire',
   ],
   icons: {
-    icon: '/brand/favi.png',
-    apple: '/brand/favi.png',
+    icon: [{ url: '/brand/favi.png', type: 'image/png' }],
+    apple: [{ url: '/brand/favi.png', type: 'image/png' }],
+    shortcut: '/brand/favi.png',
   },
   openGraph: {
     title: `${SITE.name} | Buy EA FC 26 Coins`,

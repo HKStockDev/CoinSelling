@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useCart } from '@/lib/cart';
 import { formatCoins, type Product } from '@/lib/site';

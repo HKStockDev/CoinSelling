@@ -226,7 +226,7 @@ function ModalOverlay({ children }: { children: ReactNode }) {
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+    <div className="admin-panel font-admin fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 antialiased">
       {children}
     </div>,
     document.body,
@@ -258,7 +258,7 @@ function SortHeaderButton({
       } ${active ? 'text-gold' : 'text-white/35'}`}
     >
       {label}
-      <span className="inline-flex w-3 justify-center text-[10px]" aria-hidden>
+      <span className="inline-flex w-3 justify-center text-[11px]" aria-hidden>
         {active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
       </span>
     </button>
@@ -320,8 +320,6 @@ export function UsersView() {
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState<UserFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [confirmAdd, setConfirmAdd] = useState(false);
-  const [confirmEdit, setConfirmEdit] = useState<Customer | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -461,16 +459,14 @@ export function UsersView() {
     setSortDir(key === 'buyStatus' ? 'desc' : 'asc');
   }
 
-  function beginCreate() {
-    setConfirmAdd(false);
+  function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setFormMode('create');
     setError(null);
   }
 
-  function beginEdit(c: Customer) {
-    setConfirmEdit(null);
+  function openEdit(c: Customer) {
     setEditing(c);
     setForm({
       email: c.email,
@@ -575,7 +571,7 @@ export function UsersView() {
         </p>
         <button
           type="button"
-          onClick={() => setConfirmAdd(true)}
+          onClick={openCreate}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gold text-black transition hover:bg-gold/90"
           aria-label="Add user"
           title="Add user"
@@ -674,7 +670,7 @@ export function UsersView() {
             <button
               type="button"
               onClick={() => setFiltersOpen((o) => !o)}
-              className={`inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold uppercase tracking-wide transition ${
+              className={`inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-semibold uppercase tracking-wide transition ${
                 filtersOpen || hasActiveFilters
                   ? 'border-gold/40 bg-gold/10 text-gold'
                   : 'border-white/12 text-white/45 hover:border-white/25 hover:text-white/70'
@@ -688,7 +684,7 @@ export function UsersView() {
             <button
               type="button"
               onClick={() => toggleSort(sortKey)}
-              className="inline-flex h-7 items-center gap-1 rounded-md border border-white/12 px-2 text-[10px] font-semibold uppercase tracking-wide text-white/45 transition hover:border-white/25 hover:text-white/70"
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-white/12 px-2 text-[11px] font-semibold uppercase tracking-wide text-white/45 transition hover:border-white/25 hover:text-white/70"
               title={`Sort ${sortDir === 'asc' ? 'descending' : 'ascending'}`}
             >
               Sort {sortDir === 'asc' ? '↑' : '↓'}
@@ -763,7 +759,7 @@ export function UsersView() {
                     type="button"
                     disabled={busyId === c.id}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 text-white/70 transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                    onClick={() => setConfirmEdit(c)}
+                    onClick={() => openEdit(c)}
                     aria-label={`Edit ${c.email}`}
                     title="Edit"
                   >
@@ -896,36 +892,6 @@ export function UsersView() {
             </div>
           </form>
         </ModalOverlay>
-      ) : null}
-
-      {confirmAdd ? (
-        <ConfirmModal
-          title="Add user?"
-          body="Open the form to create a new customer or admin account."
-          confirmLabel="Continue"
-          confirmClassName="bg-gold text-black"
-          onCancel={() => setConfirmAdd(false)}
-          onConfirm={beginCreate}
-        />
-      ) : null}
-
-      {confirmEdit ? (
-        <ConfirmModal
-          title="Edit user?"
-          body={
-            <>
-              Open the editor for{' '}
-              <span className="font-medium text-white">
-                {confirmEdit.full_name || confirmEdit.email}
-              </span>
-              .
-            </>
-          }
-          confirmLabel="Continue"
-          confirmClassName="bg-gold text-black"
-          onCancel={() => setConfirmEdit(null)}
-          onConfirm={() => beginEdit(confirmEdit)}
-        />
       ) : null}
 
       {confirmDelete ? (

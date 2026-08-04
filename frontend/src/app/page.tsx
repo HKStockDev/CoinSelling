@@ -1,9 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { CoinCalculator } from '@/components/CoinCalculator';
+import { SectionLink } from '@/components/SectionLink';
 
 const CARDS = [
   '/brand/mbappe-card-1.png',
@@ -115,7 +115,7 @@ export default function HomePage() {
   return (
     <div className="bg-black text-white">
       {/* Hero: Neymar background on the right, copy + stats on the left */}
-      <section className="relative min-h-[calc(100svh-72px)] overflow-hidden">
+      <section id="home" className="relative min-h-[calc(100svh-72px)] overflow-hidden">
         <Image
           src="/brand/background-comprar-coins-eafc.png"
           alt=""
@@ -150,15 +150,15 @@ export default function HomePage() {
               the best prices. More than 5,000 players trust Empire.
             </p>
 
-            <Link
-              href="#buy"
+            <SectionLink
+              section="buy"
               className="gold-btn mt-8 inline-flex items-center gap-2.5 rounded-xl px-8 py-4 text-sm sm:text-base"
             >
               <svg viewBox="0 0 576 512" className="h-4 w-4 fill-current" aria-hidden>
                 <path d="M528.12 301.319l47.273-208C578.806 78.301 567.391 64 551.99 64H111l-9.4-40.6C97.4 10.7 86.1 0 72.7 0H16C7.2 0 0 7.2 0 16s7.2 16 16 16h56.7l77.3 334.4c4.1 17.7 19.9 30.3 38.1 30.3H488c8.8 0 16-7.2 16-16s-7.2-16-16-16H188.1c-6.1 0-11.3-4.2-12.7-10.1L162.5 336H512c15.4 0 28.8-10.9 31.6-26.1zM176 464a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm288 0a48 48 0 1 0 96 0 48 48 0 1 0-96 0z" />
               </svg>
               Buy Coins
-            </Link>
+            </SectionLink>
 
             <div
               id="hero-stats"
@@ -237,12 +237,12 @@ export default function HomePage() {
           </div>
         </div>
         <div className="mt-10 text-center">
-          <Link
-            href="#buy"
+          <SectionLink
+            section="buy"
             className="gold-btn inline-flex rounded-xl px-8 py-4 text-sm"
           >
             Buy Coins
-          </Link>
+          </SectionLink>
         </div>
       </section>
 

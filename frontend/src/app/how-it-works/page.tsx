@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { SITE } from '@/lib/site';
+import { SectionLink } from '@/components/SectionLink';
 
 export const metadata: Metadata = {
   title: 'How it works',
@@ -35,12 +35,12 @@ export default function HowItWorksPage() {
             </li>
           ))}
         </ol>
-        <Link
-          href="/#buy"
+        <SectionLink
+          section="buy"
           className="gold-btn mt-10 inline-block rounded-xl px-5 py-3 text-sm"
         >
           Buy Coins
-        </Link>
+        </SectionLink>
       </div>
     </div>
   );

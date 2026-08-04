@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 import { formatCoins, formatGbp, PLATFORMS } from '@/lib/site';
+import { SectionLink } from '@/components/SectionLink';
 
 export default function CartPage() {
   const { items, platform, removeItem, totalPence, clear, setDrawerOpen } =
@@ -19,12 +20,12 @@ export default function CartPage() {
         {items.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-white/70">Your cart is empty.</p>
-            <Link
-              href="/#buy"
+            <SectionLink
+              section="buy"
               className="gold-btn mt-4 inline-block rounded-xl px-4 py-2 text-sm"
             >
               Choose coins
-            </Link>
+            </SectionLink>
           </div>
         ) : (
           <>

@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useCart } from '@/lib/cart';
 import { formatCoins, type Product } from '@/lib/site';
 import { PlatformPicker } from '@/components/PlatformPicker';
 import { ProductCard } from '@/components/ProductCard';
+import { SectionLink } from '@/components/SectionLink';
 
 export default function BuyPage() {
   const { platform, count } = useCart();
@@ -77,9 +77,9 @@ export default function BuyPage() {
         {!loading && !error && products.length === 0 && (
           <p className="mt-10 text-sm text-white/50">
             No active packs yet. See the calculator on{' '}
-            <Link href="/#buy" className="text-gold underline">
+            <SectionLink section="buy" className="text-gold underline">
               Buy
-            </Link>
+            </SectionLink>
             .
           </p>
         )}

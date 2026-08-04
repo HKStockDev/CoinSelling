@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { SITE, whatsappUrl } from '@/lib/site';
+import { SectionLink } from '@/components/SectionLink';
 
 export function SiteFooter() {
   return (
@@ -26,12 +27,12 @@ export function SiteFooter() {
             <Link href="/" className="hover:text-gold">
               Home
             </Link>
-            <Link href="/#buy" className="hover:text-gold">
+            <SectionLink section="buy" className="hover:text-gold">
               Buy
-            </Link>
-            <Link href="/#how-it-works" className="hover:text-gold">
+            </SectionLink>
+            <SectionLink section="how-it-works" className="hover:text-gold">
               How it works
-            </Link>
+            </SectionLink>
             <Link href="/buy" className="hover:text-gold">
               Packs
             </Link>

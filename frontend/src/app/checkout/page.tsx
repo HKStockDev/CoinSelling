@@ -1,11 +1,11 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useCart } from '@/lib/cart';
 import { formatGbp, SITE, whatsappUrl } from '@/lib/site';
+import { SectionLink } from '@/components/SectionLink';
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -24,9 +24,9 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-black pt-[72px] text-white">
         <div className="mx-auto max-w-xl px-4 py-16 text-center">
           <h1 className="font-display text-3xl uppercase">Cart is empty</h1>
-          <Link href="/#buy" className="mt-4 inline-block text-gold underline">
+          <SectionLink section="buy" className="mt-4 inline-block text-gold underline">
             Choose coins
-          </Link>
+          </SectionLink>
         </div>
       </div>
     );

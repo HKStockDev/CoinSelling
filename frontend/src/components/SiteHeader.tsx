@@ -3,21 +3,50 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
 import { useAuth } from '@/lib/auth';
+import { goToHomeSection } from '@/lib/scroll-section';
+
+const HOME_SECTIONS = ['home', 'cards', 'buy', 'how-it-works'] as const;
+type HomeSection = (typeof HOME_SECTIONS)[number];
 
 const NAV = [
-  { href: '/', label: 'Home', match: (path: string) => path === '/' },
-  { href: '/#cards', label: 'Cards', match: () => false },
-  { href: '/#buy', label: 'Buy', match: (path: string) => path === '/buy' },
   {
-    href: '/#how-it-works',
+    href: '/',
+    label: 'Home',
+    section: 'home' as HomeSection | null,
+    match: (path: string) => path === '/',
+  },
+  {
+    href: '/',
+    label: 'Cards',
+    section: 'cards' as HomeSection | null,
+    match: () => false,
+  },
+  {
+    href: '/',
+    label: 'Buy',
+    section: 'buy' as HomeSection | null,
+    match: () => false,
+  },
+  {
+    href: '/',
     label: 'How it works',
+    section: 'how-it-works' as HomeSection | null,
     match: (path: string) => path === '/how-it-works',
   },
-  { href: '/buy', label: 'Sell', match: () => false },
+  {
+    href: '/buy',
+    label: 'Sell',
+    section: null as HomeSection | null,
+    match: (path: string) => path === '/buy' || path.startsWith('/buy/'),
+  },
 ];
+
+const NAV_LINK_ACTIVE =
+  'border-b-2 border-gold pb-0.5 text-gold';
+const NAV_LINK_IDLE = 'text-white/85 hover:text-gold';
 
 function UserIcon({ className }: { className?: string }) {
   return (
@@ -198,10 +227,33 @@ function HeaderActions({
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { count, setDrawerOpen } = useCart();
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<HomeSection>('home');
+
+  const handleNavClick = (
+    e: React.MouseEvent,
+    item: (typeof NAV)[number],
+  ) => {
+    setMenuOpen(false);
+    if (!item.section) return;
+    e.preventDefault();
+    if (item.section === 'home') {
+      if (pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.history.replaceState(null, '', '/');
+      } else {
+        void router.push('/');
+      }
+      return;
+    }
+    goToHomeSection(item.section, pathname, (href) => {
+      void router.push(href);
+    });
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 100);
@@ -209,6 +261,42 @@ export function SiteHeader() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (pathname !== '/') {
+      return;
+    }
+
+    const spyOffset = 140;
+
+    const updateActiveSection = () => {
+      let current: HomeSection = 'home';
+      for (const id of HOME_SECTIONS) {
+        if (id === 'home') continue;
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= spyOffset) {
+          current = id;
+        }
+      }
+      setActiveSection((prev) => (prev === current ? prev : current));
+    };
+
+    updateActiveSection();
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection);
+    return () => {
+      window.removeEventListener('scroll', updateActiveSection);
+      window.removeEventListener('resize', updateActiveSection);
+    };
+  }, [pathname]);
+
+  const isNavActive = (item: (typeof NAV)[number]) => {
+    if (pathname === '/' && item.section) {
+      return item.section === activeSection;
+    }
+    return item.match(pathname);
+  };
 
   const accountHref = user
     ? user.role === 'admin'
@@ -246,15 +334,14 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-7 lg:flex">
             {NAV.map((item) => {
-              const active = item.match(pathname);
+              const active = isNavActive(item);
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
+                  onClick={(e) => handleNavClick(e, item)}
                   className={`font-display text-[13px] uppercase tracking-[0.08em] transition ${
-                    active
-                      ? 'border-b-2 border-gold pb-0.5 text-gold'
-                      : 'text-white/85 hover:text-gold'
+                    active ? NAV_LINK_ACTIVE : NAV_LINK_IDLE
                   }`}
                 >
                   {item.label}
@@ -297,15 +384,14 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-6 lg:flex">
             {NAV.map((item) => {
-              const active = item.match(pathname);
+              const active = isNavActive(item);
               return (
                 <Link
-                  key={`sticky-${item.href}`}
+                  key={`sticky-${item.label}`}
                   href={item.href}
+                  onClick={(e) => handleNavClick(e, item)}
                   className={`font-display text-[12px] uppercase tracking-[0.08em] transition ${
-                    active
-                      ? 'border-b-2 border-gold pb-0.5 text-gold'
-                      : 'text-white/85 hover:text-gold'
+                    active ? NAV_LINK_ACTIVE : NAV_LINK_IDLE
                   }`}
                 >
                   {item.label}
@@ -331,16 +417,21 @@ export function SiteHeader() {
       {menuOpen && (
         <div className="fixed inset-x-0 top-[72px] z-[70] border-t border-white/10 bg-black/98 px-4 py-4 lg:hidden">
           <div className="flex flex-col gap-3">
-            {NAV.map((item) => (
-              <Link
-                key={`m-${item.href}`}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="font-display text-sm uppercase tracking-wide text-white/90"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {NAV.map((item) => {
+              const active = isNavActive(item);
+              return (
+                <Link
+                  key={`m-${item.label}`}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item)}
+                  className={`font-display text-sm uppercase tracking-wide transition ${
+                    active ? 'text-gold' : 'text-white/90'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             <Link
               href={accountHref}
               onClick={() => setMenuOpen(false)}

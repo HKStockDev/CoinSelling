@@ -3,10 +3,15 @@ export const SITE = {
   shortName: 'Empire',
   tagline:
     'Buy FIFA Coins with instant delivery, 100% anti-ban protection, and the best prices.',
+  url: 'https://futcoinempire.com',
   whatsappE164: '447307318243',
   whatsappDisplay: '07307 318243',
   currency: 'GBP',
   supportHours: '24/7 delivery support',
+  companyName: 'OXAGUIAN LTD',
+  companyNumber: '17478033',
+  supportEmail: 'support@futcoinempire.com',
+  registeredContact: '07307318243',
 } as const;
 
 export function whatsappUrl(message?: string) {

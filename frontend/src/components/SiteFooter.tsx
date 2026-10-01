@@ -43,9 +43,19 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="font-display text-xs uppercase tracking-[0.16em] text-gold">
-            Support
+            Contact us
           </p>
-          <p className="mt-3 text-sm text-white/75">WhatsApp {SITE.whatsappDisplay}</p>
+          <p className="mt-3 text-sm font-semibold text-white/90">{SITE.companyName}</p>
+          <p className="mt-1 text-sm text-white/75">
+            Company No. {SITE.companyNumber}
+          </p>
+          <a
+            href={`mailto:${SITE.supportEmail}`}
+            className="mt-2 block text-sm text-white/75 hover:text-gold"
+          >
+            {SITE.supportEmail}
+          </a>
+          <p className="mt-2 text-sm text-white/75">WhatsApp {SITE.whatsappDisplay}</p>
           <a
             href={whatsappUrl('Hi Empire, I need help with FC 26 coins.')}
             target="_blank"
@@ -54,10 +64,20 @@ export function SiteFooter() {
           >
             Chat on WhatsApp
           </a>
+          <Link href="/terms" className="mt-3 block text-sm text-white/75 hover:text-gold">
+            Terms of Service
+          </Link>
         </div>
       </div>
-      <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} {SITE.name}. Not affiliated with EA Sports.
+      <div className="border-t border-white/10 px-4 py-4 text-center text-xs leading-relaxed text-white/40">
+        <p>
+          © {new Date().getFullYear()} {SITE.name}. {SITE.companyName} (Company No.{' '}
+          {SITE.companyNumber}).
+        </p>
+        <p className="mt-1">Not affiliated with EA Sports.</p>
+        <Link href="/terms" className="mt-2 inline-block text-white/60 hover:text-gold">
+          Terms of Service
+        </Link>
       </div>
     </footer>
   );
